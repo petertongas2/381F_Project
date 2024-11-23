@@ -1,0 +1,19 @@
+{
+  "name": "gp",
+  "version": "1.0.0",
+  "description": "gp",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ejs": "*",
+    "express": "*",
+    "express-formidable": "*",
+    "express-session": "*",
+    "passport": "*",
+    "passport-facebook": "*",
+    "mongodb": "*",
+    "passport-github": "*"
+  }
+}

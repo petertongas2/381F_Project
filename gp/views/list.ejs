@@ -1,0 +1,19 @@
+<html>
+<body>
+                <h1>Welcome, <%= user.name %></h1>
+        <p>You logged in through <b><%= user.type %></b>, user ID is <%= user.id %></p>
+            <h2>Concerts (<%= concerts.length %>)</h2>
+            <ul>
+                <% concerts.forEach(concert => { %>
+                    <li>
+                        <a href="/details?_id=<%= concert._id %>">
+                            <%= concert.title %> - <%= concert.date %>
+                        </a>
+                    </li>
+                <% }); %>
+            </ul>
+            <a href='/create' class="btn">Create a New concert</a>
+        <p><a href='/logout' class="btn">Logout</a></p>
+</body>
+</html>
+

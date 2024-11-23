@@ -1,0 +1,26 @@
+<html>
+<body>
+        <h1>Create a New Concert</h1>
+        <form action="/create" method="post" enctype="multipart/form-data">
+            <div>
+                <label for="title">Concert Title:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div>
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div>
+                <label for="location">Location:</label>
+                <input type="text" id="location" name="location" required>
+            </div>
+            <div>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <button type="submit" class="btn">Create Concert</button>
+        </form>
+        <p><a href='/content' class="btn">Back to Concert List</a></p>
+</body>
+</html>
+

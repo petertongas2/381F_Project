@@ -1,0 +1,16 @@
+<html>
+<body>
+        <h1>Concert Details</h1>
+        <section>
+            <h2><%= concert.title %></h2>
+            <p><strong>Date:</strong> <%= concert.date %></p>
+            <p><strong>Location:</strong> <%= concert.location %></p>
+            <p><strong>Description:</strong> <%= concert.description %></p>
+        </section>
+        <section>
+            <a href='/edit?_id=<%= concert._id %>' class="btn">Edit Concert</a>
+            <a href='/delete?_id=<%= concert._id %>' onclick="return confirm('Are you sure you want to delete this concert?')" class="btn">Delete Concert</a>
+        </section>
+        <p><a href='/content' class="btn">Back to Concert List</a></p>
+</body>
+</html>

@@ -1,10 +1,25 @@
 <html>
 <body>
   <h2>Edit Concert</h2>
-  <form action="/update" method="post" enctype="multipart/form-data">
-    <!-- Form fields for concert editing -->
-    <button type="submit">Update</button>
+  <form action="/update?_id=<%= concert._id %>" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="title">Concert Title:</label>
+      <input type="text" id="title" name="title" value="<%= concert.title %>" required>
+    </div>
+    <div>
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" value="<%= concert.date %>" required>
+    </div>
+    <div>
+      <label for="location">Location:</label>
+      <input type="text" id="location" name="location" value="<%= concert.location %>" required>
+    </div>
+    <div>
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" required><%= concert.description %></textarea>
+    </div>
+    <button type="submit">Update Concert</button>
   </form>
+  <p><a href='/content'>Back to List</a></p>
 </body>
 </html>
-

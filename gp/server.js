@@ -103,9 +103,19 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
     res.redirect('/content');
   });
 
-app.get('/', isLoggedIn, (req, res) => {
-  res.redirect('/content');
+// 修改根路由
+app.get('/', (req, res) => {
+  res.render('home', { user: req.user || null });
 });
+
+// 修改登出後的重定向
+app.get("/logout", (req, res) => {
+  req.logout((err) => {
+    if (err) return next(err);
+    res.redirect('/'); // 改為重定向到主頁
+  });
+});
+
 
 app.use(formidable());
 
@@ -145,7 +155,10 @@ app.get("/logout", (req, res) => {
 });
 
 app.get('/*', (req, res) => {
-  res.status(404).render('info', { message: `${req.path} - Unknown request!`, user: req.user });
+  res.status(404).render('info', { 
+    message: `${req.path} - Unknown request!`, 
+    user: req.user || null 
+  });
 });
 
 //CRUD
@@ -238,12 +251,74 @@ const handle_Details = async (req, res, criteria) => {
   res.render('details', { concert: concert[0], user: req.user });
 };
 
-const handle_Edit = async (req, res, criteria) => { /* Your implementation */ };
-const handle_Update = async (req, res, criteria) => { /* Your implementation */ };
+const handle_Edit = async (req, res, criteria) => {
+  try {
+    if (!criteria._id) {
+      res.status(400).render('info', { message: "Missing concert ID!", user: req.user });
+      return;
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const concert = await findDocument(db, { _id: new ObjectId(criteria._id) });
+
+    if (concert.length === 0) {
+      res.status(404).render('info', { message: "Concert not found!", user: req.user });
+      return;
+    }
+
+    res.render('edit', { concert: concert[0], user: req.user });
+  } catch (error) {
+    console.error("Error in edit:", error);
+    res.status(500).render('info', { message: "Database error!", user: req.user });
+  } finally {
+    await client.close();
+  }
+};
+const handle_Update = async (req, res) => {
+  try {
+    if (!req.query._id) {
+      res.status(400).render('info', { 
+        message: "Missing concert ID!", 
+        user: req.user || null 
+      });
+      return;
+    }
+
+    const updateData = {
+      title: req.fields.title,
+      date: req.fields.date,
+      location: req.fields.location,
+      description: req.fields.description
+    };
+
+    await client.connect();
+    const db = client.db(dbName);
+    const result = await updateDocument(db, 
+      { _id: new ObjectId(req.query._id) },
+      updateData
+    );
+
+    if (result.modifiedCount === 1) {
+      res.redirect('/content');
+    } else {
+      res.status(404).render('info', { message: "Concert not found or no changes made!", user: req.user });
+    }
+  } catch (error) {
+    console.error("Error updating concert:", error);
+    res.status(500).render('info', { 
+      message: "Database error!", 
+      user: req.user || null 
+    });
+  }
+};
 const handle_Delete = async (req, res) => {
   try {
     if (!req.query._id) {
-      res.status(400).render('info', { message: "Missing concert ID for deletion!", user: req.user });
+      res.status(400).render('info', { 
+        message: "Missing concert ID for deletion!", 
+        user: req.user || null 
+      });
       return;
     }
 
@@ -258,9 +333,10 @@ const handle_Delete = async (req, res) => {
     }
   } catch (error) {
     console.error("Error deleting concert:", error);
-    res.status(500).render('info', { message: "An error occurred while deleting the concert.", user: req.user });
-  } finally {
-    await client.close();
+    res.status(500).render('info', { 
+      message: "An error occurred while deleting the concert.", 
+      user: req.user || null 
+    });
   }
 };
 

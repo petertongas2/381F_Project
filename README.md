@@ -2,6 +2,8 @@ GP NO:43
 Group Member:
 Name:Tong Tsz Ho
 ID:12591345
+Name:Ma Kam Chiu 
+ID:13687015
 # Concert Management System
 
 A web application for managing concert information with authentication using Facebook and GitHub OAuth.
@@ -66,25 +68,22 @@ passport.use(new GitHubStrategy({
 ## Running the Application
 
 Start the server:
-```bash
 npm start
-```
 
 The application will be available at `http://localhost:8099`
 
 ## Project Structure
 
-```
 ├── server.js          # Main application file
 ├── package.json       # Project dependencies
 └── views/            # EJS templates
     ├── create.ejs    # Concert creation form
     ├── details.ejs   # Concert details view
     ├── edit.ejs      # Concert edit form
+    ├── home.ejs      # Home page
     ├── info.ejs      # Information messages
     ├── list.ejs      # Concert listing
     └── login.ejs     # Login page
-```
 
 ## Dependencies
 

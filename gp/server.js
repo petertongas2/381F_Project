@@ -118,6 +118,7 @@ app.get("/logout", (req, res) => {
 
 
 app.use(formidable());
+app.use( express.static( "public" ) );
 
 app.get("/content", isLoggedIn, (req, res) => {
   handle_Find(req, res, req.query.docs);

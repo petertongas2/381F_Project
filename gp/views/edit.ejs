@@ -1,34 +1,49 @@
-<!DOCTYPE html>
-<html lang="zh-HK">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>編輯演唱會</title>
   <link rel="stylesheet" href="/style.css">
-  <title>Edit Concert</title>
 </head>
 <body>
-  <div class="container">
-    <h2 class="header">Edit Concert</h2>
+    <div class="container">
+        <div class="header">
+            <h1>編輯演唱會</h1>
+        </div>
     <form action="/update?_id=<%= concert._id %>" method="post" enctype="multipart/form-data">
       <div class="form-group">
-        <label for="title">Concert Title:</label>
+        <label for="title">演唱會名稱:</label>
         <input type="text" id="title" name="title" value="<%= concert.title %>" required>
       </div>
       <div class="form-group">
-        <label for="date">Date:</label>
+        <label for="date">日期:</label>
         <input type="date" id="date" name="date" value="<%= concert.date %>" required>
       </div>
       <div class="form-group">
-        <label for="location">Location:</label>
+        <label for="time">時間:</label>
+        <input type="time" id="time" name="time" value="<%= concert.time %>" required>
+      </div>
+      <div class="form-group">
+        <label for="location">地點:</label>
         <input type="text" id="location" name="location" value="<%= concert.location %>" required>
       </div>
       <div class="form-group">
-        <label for="description">Description:</label>
+        <label for="description">描述:</label>
         <textarea id="description" name="description" required><%= concert.description %></textarea>
       </div>
+      <div class="form-group">
+        <label for="content">內容:</label>
+        <textarea id="content" name="content" required><%= concert.content %></textarea>
+      </div>
+      <div class="form-group">
+        <label for="artist">藝人:</label>
+        <input type="text" id="artist" name="artist" value="<%= concert.artist %>" required>
+      </div>
+      <div class="form-group">
+        <label for="ticketFee">票價:</label>
+        <input type="number" id="ticketFee" name="ticketFee" value="<%= concert.ticketFee %>" required>
+      </div>
       <div class="action-buttons">
-        <button type="submit" class="btn">Update Concert</button>
-        <a href='/content' class="btn btn-danger">Cancel</a>
+        <button type="submit" class="btn">更新演唱會</button>
+        <a href="/content" class="btn btn-danger">取消</a>
       </div>
     </form>
   </div>

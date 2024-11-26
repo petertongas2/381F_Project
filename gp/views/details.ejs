@@ -14,18 +14,30 @@
                 <strong>日期：</strong><%= concert.date %>
             </div>
             <div class="info-group">
+                <strong>時間：</strong><%= concert.time %>
+            </div>
+            <div class="info-group">
                 <strong>地點：</strong><%= concert.location %>
             </div>
             <div class="info-group">
                 <strong>描述：</strong>
                 <p><%= concert.description %></p>
             </div>
+            <div class="info-group">
+                <strong>內容：</strong>
+                <p><%= concert.content %></p>
+            </div>
+            <div class="info-group">
+                <strong>藝人：</strong><%= concert.artist %>
+            </div>
+            <div class="info-group">
+                <strong>票價：</strong><%= concert.ticketFee %>
+            </div>
             <div class="action-buttons">
                 <a href="/edit?_id=<%= concert._id %>" class="btn">編輯</a>
                 <a href="/delete?_id=<%= concert._id %>" onclick="return confirm('確定要刪除此演唱會嗎？')" class="btn btn-danger">刪除</a>
                 <a href="/content" class="btn">返回列表</a>
                 <a href="/logout" class="btn btn-danger">登出</a>
-            </div>
             </div>
         </div>
     </div>

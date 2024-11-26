@@ -117,7 +117,12 @@
                     共找到 <span id="concert-count"><%= concerts.length %></span> 場演唱會
                 </p>
             </div>
-
+	<div class="sort-section">
+	    <select id="sort-select" onchange="sortConcerts()">
+		<option value="name">按名稱排序</option>
+		<option value="time">按時間排序</option>
+	    </select>
+	</div>
             <div class="concert-grid">
                 <% concerts.forEach(concert => { %>
                     <div class="concert-card">
@@ -150,6 +155,24 @@
     </div>
 
 <script>
+function sortConcerts() {
+    const sortSelect = document.getElementById('sort-select');
+    const sortBy = sortSelect.value;
+    const concertGrid = document.querySelector('.concert-grid');
+    const concerts = Array.from(concertGrid.children);
+
+    concerts.sort((a, b) => {
+        if (sortBy == 'name') {
+            return a.querySelector('.concert-title').textContent.localeCompare(b.querySelector('.concert-title').textContent);
+        } else if (sortBy == 'time') {
+            return new Date(a.querySelector('.concert-details .fa-calendar').nextSibling.textContent) - new Date(b.querySelector('.concert-details .fa-calendar').nextSibling.textContent);
+        }
+    });
+
+    concertGrid.innerHTML = '';
+    concerts.forEach(concert => concertGrid.appendChild(concert));
+}
+
     function filterConcerts(searchText) {
         const concerts = document.querySelectorAll('.concert-card');
         let visibleCount = 0;

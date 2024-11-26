@@ -694,40 +694,29 @@ const handle_Find = async (req, res, criteria) => {
 };
 
 const handle_Create = async (req, res) => {
-  // Connect to the MongoDB client
   await client.connect();
   const db = client.db(dbName);
-
-  // Prepare the document to be inserted
+  // the content that can be inserted
   const newConcert = {
     title: req.fields.title,
     date: req.fields.date,
     location: req.fields.location,
-    description: req.fields.description
+    description: req.fields.description,
+    ticketFee: req.fields.ticketFee,
+    time: req.fields.time,
+    content: req.fields.content,
+    artist: req.fields.artist,
   };
-
-  // Insert the document into the collection
   await insertDocument(db, newConcert);
-
-  // Close the MongoDB client connection
   await client.close();
-
-  // Redirect to the home page after creation
   res.redirect('/content');
 };
 
 const handle_Details = async (req, res, criteria) => {
-  // Connect to the MongoDB client
   await client.connect();
   const db = client.db(dbName);
-
-  // Find the specific concert based on the criteria
   const concert = await findDocument(db, { _id: new ObjectId(criteria._id) });
-
-  // Close the MongoDB client connection
   await client.close();
-
-  // Render the concert details using the details.ejs template
   res.render('details', { concert: concert[0], user: req.user });
 };
 
@@ -765,11 +754,15 @@ const handle_Update = async (req, res) => {
       return;
     }
 
-    const updateData = {
-      title: req.fields.title,
-      date: req.fields.date,
-      location: req.fields.location,
-      description: req.fields.description
+    const updateData = { 
+    	title: req.fields.title, 
+	date: req.fields.date, 
+	location: req.fields.location, 
+	description: req.fields.description, 
+	ticketFee: req.fields.ticketFee, 
+	time: req.fields.time, 
+	content: req.fields.content, 
+	artist: req.fields.artist,
     };
 
     await client.connect();

@@ -4,6 +4,12 @@
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
+    <div class="navbar">
+        <a href="/content" class="btn">返回列表</a>
+        <a href="/profile" class="btn"><%= user.username %></a>
+        <a href="/create" class="btn">新增演唱會</a>
+        <a href="/logout" class="btn btn-danger">登出</a>
+    </div>
     <div class="container">
         <div class="header">
             <h1>建立新演唱會</h1>
@@ -44,7 +50,6 @@
             <div class="action-buttons">
                 <button type="submit" class="btn">儲存</button>
                 <a href="/content" class="btn">返回列表</a>
-                <a href="/logout" class="btn btn-danger">登出</a>
             </div>
         </form>
     </div>

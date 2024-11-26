@@ -1,49 +1,14 @@
 <html>
-<head>
-    <title>個人資料 - 演唱會票務系統</title>
-    <link rel="stylesheet" href="/style.css">
-    <style>
-        .profile-section {
-            margin-bottom: 30px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .concert-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-        .concert-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            transition: transform 0.2s;
-        }
-        .concert-card:hover {
-            transform: translateY(-3px);
-        }
-        .tab-buttons {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .tab-btn {
-            padding: 10px 20px;
-            border: none;
-            background: #f8f9fa;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        .tab-btn.active {
-            background: #007bff;
-            color: white;
-        }
-    </style>
-</head>
+    <head>
+        <title>個人資料 - 演唱會票務系統</title>
+        <link rel="stylesheet" href="/style.css">
+    </head>
 <body>
+    <div class="navbar">
+        <a href="/reset-password" class="btn">重設密碼</a>
+        <a href="/content" class="btn">返回列表</a>
+        <a href="/logout" class="btn btn-danger">登出</a>
+    </div>
     <div class="container">
         <div class="header">
             <h1>個人資料</h1>
@@ -88,11 +53,7 @@
             </div>
         </div>
 
-        <div class="action-buttons">
-            <a href="/reset-password" class="btn">重設密碼</a>
-            <a href="/content" class="btn">返回列表</a>
-            <a href="/logout" class="btn btn-danger">登出</a>
-        </div>
+        
     </div>
 
     <script>

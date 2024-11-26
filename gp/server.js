@@ -7,8 +7,7 @@ var 	express 					= require('express');
 	app						= express();
 	GitHubStrategy 					= require('passport-github').Strategy;
 var 	{ MongoClient, ServerApiVersion, ObjectId } 	= require('mongodb');
-const bcrypt = require('bcrypt');
-const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcrypt');  // 添加這行
 const userCollectionName = 'users';
 const flash = require('connect-flash');
 
@@ -98,98 +97,6 @@ app.use((req, res, next) => {
   });
   next();
 });
-
-// 新增一個測試用的管理員帳號腳本
-const createTestUser = async () => {
-  try {
-    await client.connect();
-    const db = client.db(dbName);
-    
-    // 檢查用戶是否已存在
-    const existingUser = await db.collection(userCollectionName).findOne({ username: 'admin' });
-    
-    if (existingUser) {
-      console.log('管理員帳號已存在');
-      return;
-    }
-
-    // 建立雜湊密碼
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    
-    // 插入新使用者
-    await db.collection(userCollectionName).insertOne({
-      username: 'admin',
-      password: hashedPassword,
-      createdAt: new Date(),
-      role: 'admin'
-    });
-    
-    console.log('管理員帳號建立成功');
-
-  } catch (error) {
-    console.error('建立帳號時發生錯誤:', error);
-  } finally {
-    await client.close();
-  }
-};
-
-// 執行建立帳號
-createTestUser();
-
-
-passport.use(new LocalStrategy({
-  usernameField: 'username',
-  passwordField: 'password',
-  passReqToCallback: true
-}, async function(req, username, password, done) {
-  console.log('LocalStrategy 驗證:', {
-    傳入參數: { username, password: password ? '有值' : '無值' },
-    表單資料: req.fields
-  });
-
-  try {
-    // 直接使用 req.fields 中的資料
-    const formUsername = req.fields.username;
-    const formPassword = req.fields.password;
-
-    if (!formUsername || !formPassword) {
-      console.log('驗證失敗：缺少表單資料');
-      return done(null, false, { message: '請輸入使用者名稱和密碼' });
-    }
-
-    await client.connect();
-    const db = client.db(dbName);
-    
-    const user = await db.collection(userCollectionName).findOne({ 
-      username: formUsername 
-    });
-
-    if (!user) {
-      console.log('驗證失敗：使用者不存在');
-      return done(null, false, { message: '使用者不存在' });
-    }
-
-    const isValid = await bcrypt.compare(formPassword, user.password);
-    if (!isValid) {
-      console.log('驗證失敗：密碼錯誤');
-      return done(null, false, { message: '密碼錯誤' });
-    }
-
-    console.log('驗證成功');
-    return done(null, {
-      id: user._id,
-      username: user.username,
-      name: user.username,
-      type: 'local'
-    });
-
-  } catch (err) {
-    console.error('驗證過程錯誤:', err);
-    return done(err);
-  } finally {
-    await client.close();
-  }
-}));
  
 passport.use(new FacebookStrategy({
   clientID: '1215133756230490',
@@ -230,11 +137,6 @@ app.use((req, res, next) => {
   next();
 });
 
-const isLoggedIn = (req, res, next) => {
-  if (req.isAuthenticated()) return next();
-  res.redirect('/login');
-};
-
 app.get("/login", (req, res) => {
   res.status(200).render('login', { 
     messages: req.flash(),
@@ -260,8 +162,28 @@ app.get('/auth/github/callback', passport.authenticate('github', { failureRedire
   });
 
 // 修改根路由
-app.get('/', (req, res) => {
-  res.render('home', { user: req.user || null });
+app.get('/', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const concerts = await db.collection('concerts')
+                           .find({})
+                           .toArray();
+    
+    // 確保傳遞用戶資訊,即使未登入
+    res.render('home', { 
+      concerts: concerts,
+      user: req.user || null  // 如果未登入則傳遞 null
+    });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).render('info', {
+      message: '獲取資料時發生錯誤',
+      user: req.user || null
+    });
+  } finally {
+    await client.close();
+  }
 });
 
 app.get('/register', (req, res) => {
@@ -321,17 +243,10 @@ app.post('/register', async (req, res) => {
   }
 });
 
-// 5. 添加本地登入路由
-
 app.post('/login/local', async (req, res) => {
   try {
     const { username, password } = req.fields;
     
-    console.log('登入嘗試:', {
-      username,
-      password: password ? '已提供' : '未提供'
-    });
-
     if (!username || !password) {
       return res.status(400).render('info', {
         message: '請提供使用者名稱和密碼',
@@ -359,22 +274,15 @@ app.post('/login/local', async (req, res) => {
       });
     }
 
-    // 建立使用者 session
-    req.login({
+    // 建立 session
+    req.session.user = {
       id: user._id,
       username: user.username,
       name: user.username,
       type: 'local'
-    }, (err) => {
-      if (err) {
-        console.error('Session 建立失敗:', err);
-        return res.status(500).render('info', {
-          message: '登入過程發生錯誤',
-          user: null
-        });
-      }
-      res.redirect('/content');
-    });
+    };
+
+    res.redirect('/content');
 
   } catch (error) {
     console.error('登入錯誤:', error);
@@ -387,16 +295,15 @@ app.post('/login/local', async (req, res) => {
   }
 });
 
-// 修改登出後的重定向
-app.get("/logout", (req, res) => {
-  req.logout((err) => {
-    if (err) return next(err);
-    req.flash('success', '您已成功登出');  // 可選的成功訊息
-    res.redirect('/');  // 統一重定向到首頁
-  });
-});
-
-
+// 更新 isLoggedIn middleware
+const isLoggedIn = (req, res, next) => {
+  if (req.session.user || req.isAuthenticated()) {
+    // 合併 session user 和 passport user
+    req.user = req.session.user || req.user;
+    return next();
+  }
+  res.redirect('/login');
+};
 
 app.use( express.static( "public" ) );
 
@@ -671,7 +578,6 @@ const handle_Find = async (req, res, criteria) => {
     // 查詢所有演唱會
     const concerts = await findDocument(db, criteria);
     
-    // 為每個演唱會添加收藏狀態
     const concertsWithFavoriteStatus = concerts.map(concert => ({
       ...concert,
       isFavorited: favoriteIds.includes(concert._id.toString())
@@ -696,7 +602,7 @@ const handle_Find = async (req, res, criteria) => {
 const handle_Create = async (req, res) => {
   await client.connect();
   const db = client.db(dbName);
-  // the content that can be inserted
+
   const newConcert = {
     title: req.fields.title,
     date: req.fields.date,
@@ -707,16 +613,23 @@ const handle_Create = async (req, res) => {
     content: req.fields.content,
     artist: req.fields.artist,
   };
+
   await insertDocument(db, newConcert);
+
   await client.close();
+
   res.redirect('/content');
 };
 
 const handle_Details = async (req, res, criteria) => {
   await client.connect();
   const db = client.db(dbName);
+
   const concert = await findDocument(db, { _id: new ObjectId(criteria._id) });
+
+
   await client.close();
+
   res.render('details', { concert: concert[0], user: req.user });
 };
 
@@ -754,15 +667,15 @@ const handle_Update = async (req, res) => {
       return;
     }
 
-    const updateData = { 
-    	title: req.fields.title, 
-	date: req.fields.date, 
-	location: req.fields.location, 
-	description: req.fields.description, 
-	ticketFee: req.fields.ticketFee, 
-	time: req.fields.time, 
-	content: req.fields.content, 
-	artist: req.fields.artist,
+    const updateData = {
+      title: req.fields.title,
+      date: req.fields.date,
+      location: req.fields.location,
+      description: req.fields.description,
+      ticketFee: req.fields.ticketFee, 
+	    time: req.fields.time, 
+	    content: req.fields.content, 
+	    artist: req.fields.artist,
     };
 
     await client.connect();

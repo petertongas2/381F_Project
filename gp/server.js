@@ -166,20 +166,37 @@ app.get('/', async (req, res) => {
   try {
     await client.connect();
     const db = client.db(dbName);
-    const concerts = await db.collection('concerts')
-                           .find({})
-                           .toArray();
+    // 修改這裡: 從 'concerts' 改為 collectionName
+    let concerts = await db.collection(collectionName) // 使用定義好的 collectionName
+                         .find({})
+                         .toArray();
     
-    // 確保傳遞用戶資訊,即使未登入
+    // 確保使用正確的使用者資訊
+    const currentUser = req.session.user || req.user;
+    
+    // 如果用戶已登入，添加收藏狀態
+    if (currentUser) {
+      const user = await db.collection(userCollectionName).findOne({
+        username: currentUser.username
+      });
+      const favoriteIds = user?.favoriteConcerts || [];
+      
+      concerts = concerts.map(concert => ({
+        ...concert,
+        isFavorited: favoriteIds.includes(concert._id.toString())
+      }));
+    }
+    
     res.render('home', { 
       concerts: concerts,
-      user: req.user || null  // 如果未登入則傳遞 null
+      user: currentUser
     });
+    
   } catch (error) {
     console.error('Error:', error);
     res.status(500).render('info', {
       message: '獲取資料時發生錯誤',
-      user: req.user || null
+      user: req.session.user || req.user || null
     });
   } finally {
     await client.close();
@@ -267,6 +284,7 @@ app.post('/login/local', async (req, res) => {
     }
 
     const isValid = await bcrypt.compare(password, user.password);
+    
     if (!isValid) {
       return res.status(401).render('info', {
         message: '密碼錯誤',
@@ -274,17 +292,16 @@ app.post('/login/local', async (req, res) => {
       });
     }
 
-    // 建立 session
+    // 設置 session
     req.session.user = {
-      id: user._id,
       username: user.username,
-      name: user.username,
-      type: 'local'
+      name: user.username,  // 使用 username 作為顯示名稱
+      type: 'local'        // 本地登入
     };
 
-    res.redirect('/content');
-
-  } catch (error) {
+    res.redirect('/');
+    
+  } catch(error) {
     console.error('登入錯誤:', error);
     res.status(500).render('info', {
       message: '登入過程發生錯誤',
@@ -319,7 +336,7 @@ app.post('/create', isLoggedIn, (req, res) => {
   handle_Create(req, res);
 });
 
-app.get('/details', isLoggedIn, (req, res) => {
+app.get('/details', async (req, res) => {
   handle_Details(req, res, req.query);
 });
 

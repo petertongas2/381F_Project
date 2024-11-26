@@ -126,15 +126,21 @@
                                 <%= concert.title %>
                             </div>
                             <div class="concert-details">
+                                <!-- 只顯示基本資訊:日期和地點 -->
                                 <p><i class="far fa-calendar"></i> <%= concert.date %></p>
                                 <p><i class="fas fa-map-marker-alt"></i> <%= concert.location %></p>
                             </div>
                         </div>
                         <div class="concert-actions">
-                            <button class="favorite-btn" onclick="toggleFavorite('<%= concert._id %>')">
-                                <i class="far fa-star"></i>
-                                <span>收藏</span>
-                            </button>
+                            <% if (user) { %>
+                                <!-- 已登入用戶可看到收藏按鈕 -->
+                                <button class="favorite-btn" onclick="toggleFavorite('<%= concert._id %>')"
+                                        data-favorited="<%= concert.isFavorited %>">
+                                    <i class="<%= concert.isFavorited ? 'fas' : 'far' %> fa-star"></i>
+                                    <span><%= concert.isFavorited ? '已收藏' : '收藏' %></span>
+                                </button>
+                            <% } %>
+                            <!-- 所有用戶都可以點擊查看詳情查看完整資訊 -->
                             <a href="/details?_id=<%= concert._id %>" class="btn">查看詳情</a>
                         </div>
                     </div>
@@ -165,48 +171,56 @@
     }
 
     async function toggleFavorite(concertId) {
-        try {
-            const btn = event.currentTarget;
-            const icon = btn.querySelector('i');
-            
-            const response = await fetch('/toggle-favorite', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ concertId })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Server response was not ok');
-            }
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                // 切換收藏狀態
-                if (data.isFavorited) {
-                    icon.classList.replace('far', 'fas');
-                    btn.classList.add('active');
-                    btn.querySelector('span').textContent = '已收藏';
-                } else {
-                    icon.classList.replace('fas', 'far');
-                    btn.classList.remove('active');
-                    btn.querySelector('span').textContent = '收藏';
-                }
-                
-                // 添加視覺反饋
-                btn.style.transform = 'scale(1.1)';
-                setTimeout(() => {
-                    btn.style.transform = 'scale(1)';
-                }, 200);
-            }
-        } catch (error) {
-            console.error('收藏操作失敗:', error);
-            alert('收藏操作失敗，請稍後再試');
+    try {
+        // 檢查登入狀態
+        const userElement = document.querySelector('.navbar [href="/profile"]');
+        if (!userElement) {
+            window.location.href = '/login';
+            return;
         }
+
+        const btn = event.currentTarget;
+        const icon = btn.querySelector('i');
+        
+        const response = await fetch('/toggle-favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ concertId })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Server response was not ok');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // 切換收藏狀態
+            if (data.isFavorited) {
+                icon.classList.replace('far', 'fas');
+                btn.classList.add('active');
+                btn.querySelector('span').textContent = '已收藏';
+            } else {
+                icon.classList.replace('fas', 'far');
+                btn.classList.remove('active');
+                btn.querySelector('span').textContent = '收藏';
+            }
+            
+            // 添加視覺反饋
+            btn.style.transform = 'scale(1.1)';
+            setTimeout(() => {
+                btn.style.transform = 'scale(1)';
+            }, 200);
+        }
+    } catch (error) {
+        console.error('收藏操作失敗:', error);
+        alert('收藏操作失敗，請稍後再試');
     }
+}
+    
 
     // 初始化收藏按鈕狀態
     document.addEventListener('DOMContentLoaded', () => {

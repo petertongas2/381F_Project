@@ -1,16 +1,33 @@
 <html>
+<head>
+    <title>演唱會詳情 - 票務系統</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
 <body>
-        <h1>Concert Details</h1>
-        <section>
+    <div class="container">
+        <div class="header">
+            <h1>演唱會詳情</h1>
+        </div>
+        <div class="concert-details">
             <h2><%= concert.title %></h2>
-            <p><strong>Date:</strong> <%= concert.date %></p>
-            <p><strong>Location:</strong> <%= concert.location %></p>
-            <p><strong>Description:</strong> <%= concert.description %></p>
-        </section>
-        <section>
-            <a href='/edit?_id=<%= concert._id %>' class="btn">Edit Concert</a>
-            <a href='/delete?_id=<%= concert._id %>' onclick="return confirm('Are you sure you want to delete this concert?')" class="btn">Delete Concert</a>
-        </section>
-        <p><a href='/content' class="btn">Back to Concert List</a></p>
+            <div class="info-group">
+                <strong>日期：</strong><%= concert.date %>
+            </div>
+            <div class="info-group">
+                <strong>地點：</strong><%= concert.location %>
+            </div>
+            <div class="info-group">
+                <strong>描述：</strong>
+                <p><%= concert.description %></p>
+            </div>
+            <div class="action-buttons">
+                <a href="/edit?_id=<%= concert._id %>" class="btn">編輯</a>
+                <a href="/delete?_id=<%= concert._id %>" onclick="return confirm('確定要刪除此演唱會嗎？')" class="btn btn-danger">刪除</a>
+                <a href="/content" class="btn">返回列表</a>
+                <a href="/logout" class="btn btn-danger">登出</a>
+            </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

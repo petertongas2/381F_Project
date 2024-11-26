@@ -1,0 +1,111 @@
+<html>
+<head>
+    <title>個人資料 - 演唱會票務系統</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .profile-section {
+            margin-bottom: 30px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .concert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .concert-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            transition: transform 0.2s;
+        }
+        .concert-card:hover {
+            transform: translateY(-3px);
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: #f8f9fa;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .tab-btn.active {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>個人資料</h1>
+            <div class="welcome-message">
+                <h2>歡迎, <%= user.name %></h2>
+                <p>帳號類型: <%= user.type %></p>
+            </div>
+        </div>
+        
+        <div class="profile-section">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="showTab('registered')">已報名的演唱會</button>
+                <button class="tab-btn" onclick="showTab('favorite')">收藏的演唱會</button>
+            </div>
+
+            <div id="registered" class="tab-content">
+                <h3>已報名的演唱會 (<%= registeredConcerts.length %>)</h3>
+                <div class="concert-grid">
+                    <% registeredConcerts.forEach(concert => { %>
+                        <div class="concert-card">
+                            <h4><%= concert.title %></h4>
+                            <p>日期: <%= concert.date %></p>
+                            <p>地點: <%= concert.location %></p>
+                            <a href="/details?_id=<%= concert._id %>" class="btn">查看詳情</a>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+
+            <div id="favorite" class="tab-content" style="display: none;">
+                <h3>收藏的演唱會 (<%= favoriteConcerts.length %>)</h3>
+                <div class="concert-grid">
+                    <% favoriteConcerts.forEach(concert => { %>
+                        <div class="concert-card">
+                            <h4><%= concert.title %></h4>
+                            <p>日期: <%= concert.date %></p>
+                            <p>地點: <%= concert.location %></p>
+                            <a href="/details?_id=<%= concert._id %>" class="btn">查看詳情</a>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/reset-password" class="btn">重設密碼</a>
+            <a href="/content" class="btn">返回列表</a>
+            <a href="/logout" class="btn btn-danger">登出</a>
+        </div>
+    </div>
+
+    <script>
+    function showTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(tab => {
+            tab.style.display = 'none';
+        });
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.getElementById(tabId).style.display = 'block';
+        event.target.classList.add('active');
+    }
+    </script>
+</body>
+</html>

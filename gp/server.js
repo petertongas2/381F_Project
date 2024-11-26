@@ -7,6 +7,10 @@ var 	express 					= require('express');
 	app						= express();
 	GitHubStrategy 					= require('passport-github').Strategy;
 var 	{ MongoClient, ServerApiVersion, ObjectId } 	= require('mongodb');
+const bcrypt = require('bcrypt');
+const LocalStrategy = require('passport-local').Strategy;
+const userCollectionName = 'users';
+const flash = require('connect-flash');
 
 //mongodb
 //
@@ -20,23 +24,172 @@ const client = new MongoClient(mongourl, {
     deprecationErrors: true,
   },
 });
-//
-//
 
+// 2. 創建初始化函數
+async function initializeDatabase() {
+  try {
+    await client.connect();
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
+}
+
+// 3. 修改用戶創建函數
+async function createUser(userData) {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const result = await db.collection(userCollectionName).insertOne({
+      username: userData.username,
+      password: userData.password,
+      createdAt: new Date(),
+      // 初始化這些陣列
+      registeredConcerts: [],
+      favoriteConcerts: []
+    });
+    return result;
+  } catch (error) {
+    console.error('Error creating user:', error);
+    throw error;
+  } finally {
+    await client.close();
+  }
+}
 app.set('view engine', 'ejs');
+
+
 
 //passport
 //
 
 var user = {};
-passport.serializeUser (function (user, done) {done (null, user); });
-passport.deserializeUser (function (id, done) {done (null, user);});
+passport.serializeUser((user, done) => {
+  console.log('序列化使用者:', user);
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  console.log('反序列化使用者:', user);
+  done(null, user);
+});
+
 app.use(session({
-	secret: "tHiSiSasEcRetStr",
-	resave: true,
-	saveUninitialized: true }));
-app.use (passport.initialize());
+  secret: "tHiSiSasEcRetStr",
+  resave: true,
+  saveUninitialized: true
+}));
+
+app.use(formidable({
+  encoding: 'utf-8',
+  uploadDir: './uploads',
+  multiples: true,
+  keepExtensions: true
+}));
+
+app.use(flash());
+app.use(passport.initialize());
 app.use(passport.session());
+
+app.use((req, res, next) => {
+  console.log('Request Body:', {
+    fields: req.fields,
+    path: req.path
+  });
+  next();
+});
+
+// 新增一個測試用的管理員帳號腳本
+const createTestUser = async () => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    // 檢查用戶是否已存在
+    const existingUser = await db.collection(userCollectionName).findOne({ username: 'admin' });
+    
+    if (existingUser) {
+      console.log('管理員帳號已存在');
+      return;
+    }
+
+    // 建立雜湊密碼
+    const hashedPassword = await bcrypt.hash('admin123', 10);
+    
+    // 插入新使用者
+    await db.collection(userCollectionName).insertOne({
+      username: 'admin',
+      password: hashedPassword,
+      createdAt: new Date(),
+      role: 'admin'
+    });
+    
+    console.log('管理員帳號建立成功');
+
+  } catch (error) {
+    console.error('建立帳號時發生錯誤:', error);
+  } finally {
+    await client.close();
+  }
+};
+
+// 執行建立帳號
+createTestUser();
+
+
+passport.use(new LocalStrategy({
+  usernameField: 'username',
+  passwordField: 'password',
+  passReqToCallback: true
+}, async function(req, username, password, done) {
+  console.log('LocalStrategy 驗證:', {
+    傳入參數: { username, password: password ? '有值' : '無值' },
+    表單資料: req.fields
+  });
+
+  try {
+    // 直接使用 req.fields 中的資料
+    const formUsername = req.fields.username;
+    const formPassword = req.fields.password;
+
+    if (!formUsername || !formPassword) {
+      console.log('驗證失敗：缺少表單資料');
+      return done(null, false, { message: '請輸入使用者名稱和密碼' });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const user = await db.collection(userCollectionName).findOne({ 
+      username: formUsername 
+    });
+
+    if (!user) {
+      console.log('驗證失敗：使用者不存在');
+      return done(null, false, { message: '使用者不存在' });
+    }
+
+    const isValid = await bcrypt.compare(formPassword, user.password);
+    if (!isValid) {
+      console.log('驗證失敗：密碼錯誤');
+      return done(null, false, { message: '密碼錯誤' });
+    }
+
+    console.log('驗證成功');
+    return done(null, {
+      id: user._id,
+      username: user.username,
+      name: user.username,
+      type: 'local'
+    });
+
+  } catch (err) {
+    console.error('驗證過程錯誤:', err);
+    return done(err);
+  } finally {
+    await client.close();
+  }
+}));
  
 passport.use(new FacebookStrategy({
   clientID: '1215133756230490',
@@ -83,7 +236,10 @@ const isLoggedIn = (req, res, next) => {
 };
 
 app.get("/login", (req, res) => {
-  res.status(200).render('login');
+  res.status(200).render('login', { 
+    messages: req.flash(),
+    user: req.user || null 
+  });
 });
 
 app.get("/auth/facebook", passport.authenticate("facebook", { scope: "email" }));
@@ -108,16 +264,140 @@ app.get('/', (req, res) => {
   res.render('home', { user: req.user || null });
 });
 
+app.get('/register', (req, res) => {
+  res.render('register', { user: null });
+});
+
+app.post('/register', async (req, res) => {
+  try {
+    const username = req.fields?.username;
+    const password = req.fields?.password;
+    
+    console.log('處理的註冊數據:', {
+      username: username,
+      password: password ? '已提供' : '未提供'
+    });
+
+    if (!username || !password) {
+      return res.status(400).render('info', {
+        message: '使用者名稱和密碼都是必填欄位',
+        user: null
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const existingUser = await db.collection(userCollectionName).findOne({ username });
+    if (existingUser) {
+      return res.status(400).render('info', {
+        message: '使用者名稱已存在',
+        user: null
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // 使用更新後的結構建立使用者
+    await db.collection(userCollectionName).insertOne({
+      username,
+      password: hashedPassword,
+      createdAt: new Date(),
+      registeredConcerts: [],  // 初始化空陣列
+      favoriteConcerts: []    // 初始化空陣列
+    });
+    
+    res.redirect('/login');
+  } catch(error) {
+    console.error('註冊錯誤:', error);
+    res.status(500).render('info', {
+      message: '註冊過程發生錯誤',
+      user: null
+    });
+  } finally {
+    if (client) {
+      await client.close();
+    }
+  }
+});
+
+// 5. 添加本地登入路由
+
+app.post('/login/local', async (req, res) => {
+  try {
+    const { username, password } = req.fields;
+    
+    console.log('登入嘗試:', {
+      username,
+      password: password ? '已提供' : '未提供'
+    });
+
+    if (!username || !password) {
+      return res.status(400).render('info', {
+        message: '請提供使用者名稱和密碼',
+        user: null
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const user = await db.collection(userCollectionName).findOne({ username });
+
+    if (!user) {
+      return res.status(401).render('info', {
+        message: '使用者不存在',
+        user: null
+      });
+    }
+
+    const isValid = await bcrypt.compare(password, user.password);
+    if (!isValid) {
+      return res.status(401).render('info', {
+        message: '密碼錯誤',
+        user: null
+      });
+    }
+
+    // 建立使用者 session
+    req.login({
+      id: user._id,
+      username: user.username,
+      name: user.username,
+      type: 'local'
+    }, (err) => {
+      if (err) {
+        console.error('Session 建立失敗:', err);
+        return res.status(500).render('info', {
+          message: '登入過程發生錯誤',
+          user: null
+        });
+      }
+      res.redirect('/content');
+    });
+
+  } catch (error) {
+    console.error('登入錯誤:', error);
+    res.status(500).render('info', {
+      message: '登入過程發生錯誤',
+      user: null
+    });
+  } finally {
+    await client.close();
+  }
+});
+
 // 修改登出後的重定向
 app.get("/logout", (req, res) => {
   req.logout((err) => {
     if (err) return next(err);
-    res.redirect('/'); // 改為重定向到主頁
+    req.flash('success', '您已成功登出');  // 可選的成功訊息
+    res.redirect('/');  // 統一重定向到首頁
   });
 });
 
 
-app.use(formidable());
+
 app.use( express.static( "public" ) );
 
 app.get("/content", isLoggedIn, (req, res) => {
@@ -155,12 +435,190 @@ app.get("/logout", (req, res) => {
   });
 });
 
+// 用戶個人資料頁面
+app.get('/profile', isLoggedIn, async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const user = await db.collection(userCollectionName).findOne(
+      { username: req.user.username }
+    );
+
+    if (!user) {
+      return res.status(404).render('info', {
+        message: '找不到使用者資料',
+        user: req.user
+      });
+    }
+
+    // 確保陣列存在
+    const registeredIds = user.registeredConcerts || [];
+    const favoriteIds = user.favoriteConcerts || [];
+
+    // 使用 ObjectId 轉換前先檢查陣列是否為空
+    const registeredConcerts = registeredIds.length > 0 
+      ? await db.collection(collectionName)
+          .find({ _id: { $in: registeredIds.map(id => new ObjectId(id)) } })
+          .toArray()
+      : [];
+      
+    const favoriteConcerts = favoriteIds.length > 0
+      ? await db.collection(collectionName)
+          .find({ _id: { $in: favoriteIds.map(id => new ObjectId(id)) } })
+          .toArray()
+      : [];
+
+    res.render('profile', {
+      user: req.user,
+      registeredConcerts,
+      favoriteConcerts
+    });
+  } catch (error) {
+    console.error('獲取個人資料錯誤:', error);
+    res.status(500).render('info', {
+      message: '獲取資料時發生錯誤',
+      user: req.user
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// 收藏/取消收藏演唱會
+app.post('/toggle-favorite', isLoggedIn, async (req, res) => {
+  try {
+    console.log('收藏請求內容:', req.fields);
+    const concertId = req.fields?.concertId || req.body?.concertId;
+    
+    if (!concertId) {
+      console.log('缺少演唱會ID');
+      return res.status(400).json({ 
+        success: false, 
+        message: '缺少演唱會ID' 
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    
+    // 查找使用者
+    const user = await db.collection(userCollectionName).findOne({ 
+      username: req.user.username 
+    });
+
+    if (!user) {
+      console.log('找不到使用者');
+      return res.status(404).json({
+        success: false,
+        message: '找不到使用者'
+      });
+    }
+
+    // 初始化收藏陣列（如果不存在）
+    if (!user.favoriteConcerts) {
+      await db.collection(userCollectionName).updateOne(
+        { username: req.user.username },
+        { $set: { favoriteConcerts: [] } }
+      );
+    }
+
+    // 檢查演唱會是否已收藏
+    const favoriteConcerts = user.favoriteConcerts || [];
+    const isFavorited = favoriteConcerts.includes(concertId);
+    
+    // 更新收藏狀態
+    let updateResult;
+    if (isFavorited) {
+      updateResult = await db.collection(userCollectionName).updateOne(
+        { username: req.user.username },
+        { $pull: { favoriteConcerts: concertId } }
+      );
+    } else {
+      updateResult = await db.collection(userCollectionName).updateOne(
+        { username: req.user.username },
+        { $addToSet: { favoriteConcerts: concertId } }
+      );
+    }
+
+    if (updateResult.modifiedCount === 0) {
+      throw new Error('更新失敗');
+    }
+
+    console.log('收藏操作成功:', !isFavorited);
+    res.json({ 
+      success: true, 
+      isFavorited: !isFavorited 
+    });
+
+  } catch (error) {
+    console.error('收藏操作失敗:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: '收藏操作失敗' 
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// 重設密碼
+app.get('/reset-password', isLoggedIn, (req, res) => {
+  res.render('reset-password', { user: req.user });
+});
+
+app.post('/reset-password', isLoggedIn, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.fields;
+    
+    if (newPassword !== confirmPassword) {
+      return res.status(400).render('info', {
+        message: '新密碼與確認密碼不符',
+        user: req.user
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const user = await db.collection(userCollectionName)
+      .findOne({ username: req.user.username });
+
+    const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!isValidPassword) {
+      return res.status(401).render('info', {
+        message: '目前密碼錯誤',
+        user: req.user
+      });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    await db.collection(userCollectionName).updateOne(
+      { username: req.user.username },
+      { $set: { password: hashedNewPassword } }
+    );
+
+    req.flash('success', '密碼已成功更新');
+    res.redirect('/profile');
+  } catch (error) {
+    console.error('重設密碼錯誤:', error);
+    res.status(500).render('info', {
+      message: '重設密碼時發生錯誤',
+      user: req.user
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+
 app.get('/*', (req, res) => {
   res.status(404).render('info', { 
     message: `${req.path} - Unknown request!`, 
     user: req.user || null 
   });
 });
+
+
 
 //CRUD
 //
@@ -200,18 +658,39 @@ const deleteDocument = async (db, criteria) => {
 //
 //
 const handle_Find = async (req, res, criteria) => {
-  // Connect to the MongoDB client
-  await client.connect();
-  const db = client.db(dbName);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    
+    // 獲取使用者的收藏清單
+    const user = await db.collection(userCollectionName).findOne({ 
+      username: req.user.username 
+    });
+    const favoriteIds = user.favoriteConcerts || [];
+    
+    // 查詢所有演唱會
+    const concerts = await findDocument(db, criteria);
+    
+    // 為每個演唱會添加收藏狀態
+    const concertsWithFavoriteStatus = concerts.map(concert => ({
+      ...concert,
+      isFavorited: favoriteIds.includes(concert._id.toString())
+    }));
 
-  // Query the MongoDB collection
-  const results = await findDocument(db, criteria);
-
-  // Render the results using the list.ejs template
-  res.render('list', { user: req.user, concerts: results });
-
-  // Close the MongoDB client connection
-  await client.close();
+    res.render('list', { 
+      user: req.user, 
+      concerts: concertsWithFavoriteStatus 
+    });
+    
+  } catch (error) {
+    console.error('獲取演唱會列表失敗:', error);
+    res.status(500).render('info', {
+      message: '獲取資料時發生錯誤',
+      user: req.user
+    });
+  } finally {
+    await client.close();
+  }
 };
 
 const handle_Create = async (req, res) => {

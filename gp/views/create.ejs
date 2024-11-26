@@ -1,26 +1,36 @@
 <html>
+<head>
+    <title>建立新演唱會 - 票務系統</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
 <body>
-        <h1>Create a New Concert</h1>
+    <div class="container">
+        <div class="header">
+            <h1>建立新演唱會</h1>
+        </div>
         <form action="/create" method="post" enctype="multipart/form-data">
-            <div>
-                <label for="title">Concert Title:</label>
+            <div class="form-group">
+                <label for="title">演唱會名稱</label>
                 <input type="text" id="title" name="title" required>
             </div>
-            <div>
-                <label for="date">Date:</label>
+            <div class="form-group">
+                <label for="date">日期</label>
                 <input type="date" id="date" name="date" required>
             </div>
-            <div>
-                <label for="location">Location:</label>
+            <div class="form-group">
+                <label for="location">地點</label>
                 <input type="text" id="location" name="location" required>
             </div>
-            <div>
-                <label for="description">Description:</label>
-                <textarea id="description" name="description" required></textarea>
+            <div class="form-group">
+                <label for="description">描述</label>
+                <textarea id="description" name="description" required rows="4"></textarea>
             </div>
-            <button type="submit" class="btn">Create Concert</button>
+            <div class="action-buttons">
+                <button type="submit" class="btn">儲存</button>
+                <a href="/content" class="btn">返回列表</a>
+                <a href="/logout" class="btn btn-danger">登出</a>
+            </div>
         </form>
-        <p><a href='/content' class="btn">Back to Concert List</a></p>
+    </div>
 </body>
 </html>
-

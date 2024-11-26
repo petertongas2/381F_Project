@@ -1,19 +1,126 @@
 <html>
+    <head>
+        <title>演唱會列表 - 票務系統</title>
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    </head>
 <body>
-                <h1>Welcome, <%= user.name %></h1>
-        <p>You logged in through <b><%= user.type %></b>, user ID is <%= user.id %></p>
-            <h2>Concerts (<%= concerts.length %>)</h2>
-            <ul>
+    <div class="container">
+        <div class="header">
+            <h1>演唱會列表</h1>
+            <div class="welcome-message">
+                <p>歡迎, <%= user.name %></p>
+                <p>登入方式：<b><%= user.type %></b></p>
+            </div>
+        </div>
+
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="搜尋演唱會..." oninput="filterConcerts(this.value)">
+        </div>
+
+        <div class="content">
+            <h2>全部演唱會 (<span id="concert-count"><%= concerts.length %></span>)</h2>
+            <ul class="concert-list">
                 <% concerts.forEach(concert => { %>
-                    <li>
-                        <a href="/details?_id=<%= concert._id %>">
-                            <%= concert.title %> - <%= concert.date %>
-                        </a>
+                    <li class="concert-item">
+                        <div class="concert-item-content">
+                            <div class="concert-info">
+                                <div class="concert-title">
+                                    <%= concert.title %>
+                                </div>
+                                <div class="concert-details">
+                                    <div class="concert-date">
+                                        <i class="far fa-calendar"></i>
+                                        <%= concert.date %>
+                                    </div>
+                                    <div class="concert-location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <%= concert.location %>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="action-area">
+                                <button class="favorite-btn" onclick="toggleFavorite('<%= concert._id %>')">
+                                    <i class="far fa-star"></i>
+                                    <span>收藏</span>
+                                </button>
+                                <a href="/details?_id=<%= concert._id %>" class="btn">查看詳情</a>
+                            </div>
+                        </div>
                     </li>
                 <% }); %>
             </ul>
-            <a href='/create' class="btn">Create a New concert</a>
-        <p><a href='/logout' class="btn">Logout</a></p>
+        </div>
+
+        <div class="action-buttons">
+            <a href="/create" class="btn">新增演唱會</a>
+            <a href="/profile" class="btn">個人資料</a>
+            <a href="/" class="btn">返回首頁</a>
+            <a href="/logout" class="btn btn-danger">登出</a>
+        </div>
+    </div>
+
+    <script>
+        function filterConcerts(searchText) {
+            const concerts = document.querySelectorAll('.concert-item');
+            let visibleCount = 0;
+            
+            concerts.forEach(concert => {
+                const title = concert.querySelector('.concert-title').textContent.toLowerCase();
+                const location = concert.querySelector('.concert-location').textContent.toLowerCase();
+                const searchLower = searchText.toLowerCase();
+                
+                if (title.includes(searchLower) || location.includes(searchLower)) {
+                    concert.style.display = '';
+                    visibleCount++;
+                } else {
+                    concert.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('concert-count').textContent = visibleCount;
+        }
+
+        async function toggleFavorite(concertId) {
+    try {
+        const btn = event.currentTarget;
+        const icon = btn.querySelector('i');
+        
+        // 確保 concertId 為字符串
+        const response = await fetch('/toggle-favorite', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                concertId: concertId.toString() 
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error('Server response was not ok');
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.isFavorited) {
+                icon.classList.replace('far', 'fas');
+                btn.classList.add('active');
+            } else {
+                icon.classList.replace('fas', 'far');
+                btn.classList.remove('active');
+            }
+        } else {
+            throw new Error(data.message);
+        }
+        
+    } catch (error) {
+        console.error('收藏操作失敗:', error);
+        alert('收藏操作失敗，請稍後再試');
+    }
+}
+    </script>
 </body>
 </html>
-

@@ -1,11 +1,25 @@
 <html>
+<head>
+    <title>系統訊息 - 演唱會票務系統</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
 <body>
-    <% if (user) { %>
-        <H1>Welcome, <%= user.name %></H1>
-        <hr/>
-        <p>You logged in through <b><%= user.type %></b>, user ID is <%= user.id %></p>
-    <% } %>
-    <b><%= message %></b>
-    <p><a href="/">home</a></p>
+    <div class="container">
+        <div class="header">
+            <h1>系統訊息</h1>
+        </div>
+        <% if (user) { %>
+            <div class="welcome-message">
+                <h2>歡迎, <%= user.name %></h2>
+                <p>您已使用 <b><%= user.type %></b> 登入，用戶 ID：<%= user.id %></p>
+            </div>
+        <% } %>
+        <div class="message-box">
+            <p class="message"><%= message %></p>
+            <div class="action-buttons">
+                <a href="/" class="btn">返回首頁</a>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

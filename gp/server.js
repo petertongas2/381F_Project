@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 const host = '0.0.0.0';
 const port = process.env.PORT || 8099;
-
+const cors = require('cors');
 
 
 const mongourl = 'mongodb+srv://bondlcf123:123@cluster0.hchfj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
@@ -118,6 +118,11 @@ app.use((req, res, next) => {
   console.log('User:', req.session.user);
   next();
 });
+
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
  
 passport.use(new FacebookStrategy({
   clientID: '1215133756230490',
@@ -893,7 +898,7 @@ const handle_Delete = async (req, res) => {
 
 
 app.listen(port, host, () => {
-  console.log(`Server running at http://${host}:${port}/`);
+  console.log(`Server running at http://localhost:${port}/`);
 });
 
 app.use(express.static('public'));

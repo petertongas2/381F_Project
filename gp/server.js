@@ -10,34 +10,10 @@ var 	{ MongoClient, ServerApiVersion, ObjectId } 	= require('mongodb');
 const bcrypt = require('bcrypt');  // 添加這行
 const userCollectionName = 'users';
 const flash = require('connect-flash');
-const multer = require('multer');
-const formidableMiddleware = require('express-formidable');
 const fs = require('fs');
 const path = require('path');
-
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'public/uploads/') // 確保這個目錄存在
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname))
-  }
-});
-
-const upload = multer({ 
-  storage: storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 限制 5MB
-  },
-  fileFilter: function (req, file, cb) {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-    if (!allowedTypes.includes(file.mimetype)) {
-      return cb(new Error('只允許上傳 JPG、PNG 或 GIF 格式的圖片'));
-    }
-    cb(null, true);
-  }
-});
+const host = '0.0.0.0';
+const port = process.env.PORT || 8099;
 
 
 
@@ -120,10 +96,10 @@ app.use(session({
 
 app.use(formidable({
   encoding: 'utf-8',
-  uploadDir: './public/uploads',  // 修改上傳路徑
+  uploadDir: './public/uploads',
   keepExtensions: true,
   multiples: true,
-  maxFileSize: 5 * 1024 * 1024 // 5MB
+  maxFileSize: 5 * 1024 * 1024
 }));
 
 app.use(flash());
@@ -187,11 +163,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(formidableMiddleware({
-  uploadDir: './uploads',    // 設定上傳目錄
-  keepExtensions: true,      // 保留檔案副檔名
-  maxFieldsSize: 10 * 1024 * 1024  // 最大上傳大小 10MB
-}));
 
 app.get("/login", (req, res) => {
   res.status(200).render('login', { 
@@ -635,14 +606,8 @@ app.post('/reset-password', isLoggedIn, async (req, res) => {
 });
 
 
-app.get('/*', (req, res) => {
-  res.status(404).render('info', { 
-    message: `${req.path} - Unknown request!`, 
-    user: req.user || null 
-  });
-});
 
-app.use(express.static('public'));
+
 
 
 //CRUD
@@ -791,8 +756,10 @@ const handle_Edit = async (req, res, criteria) => {
 };
 const handle_Update = async (req, res) => {
   try {
-    console.log('Session:', req.session); // 調試用
-    console.log('User:', req.user); // 調試用
+    console.log('更新請求內容:', {
+      fields: req.fields,
+      files: req.files
+    });
 
     if (!req.query._id) {
       res.status(400).render('info', { 
@@ -807,19 +774,31 @@ const handle_Update = async (req, res) => {
       return res.redirect('/login');
     }
 
+    // 建立基本更新資料
     const updateData = {
       title: req.fields.title,
       date: req.fields.date,
       location: req.fields.location,
       description: req.fields.description,
-      ticketFee: req.fields.ticketFee, 
-      time: req.fields.time, 
-      content: req.fields.content, 
+      ticketFee: req.fields.ticketFee,
+      time: req.fields.time,
+      content: req.fields.content,
       artist: req.fields.artist,
       lastModified: new Date()
     };
-    const data = await fsPromises.readFile(req.files.filetoupload.path);
-    updateData.photo = Buffer.from(data).toString('base64');
+
+    // 處理圖片上傳
+    if (req.files && req.files.image && req.files.image.path) {
+      try {
+        const imageData = await fsPromises.readFile(req.files.image.path);
+        updateData.image = Buffer.from(imageData).toString('base64');
+        // 刪除暫存檔
+        await fsPromises.unlink(req.files.image.path);
+      } catch (fileError) {
+        console.error('圖片處理錯誤:', fileError);
+      }
+    }
+
     await client.connect();
     const db = client.db(dbName);
     const result = await updateDocument(db, 
@@ -841,8 +820,48 @@ const handle_Update = async (req, res) => {
       message: "Database error!", 
       user: req.session.user || req.user || null 
     });
+  } finally {
+    await client.close();
   }
 };
+
+const handle_Details = async (req, res, query) => {
+  try {
+    if (!query._id) {
+      res.status(400).render('info', { 
+        message: "Missing concert ID!", 
+        user: req.user 
+      });
+      return;
+    }
+
+    await client.connect(); 
+    const db = client.db(dbName);
+    const concert = await findDocument(db, { _id: new ObjectId(query._id) });
+
+    if (concert.length === 0) {
+      res.status(404).render('info', {
+        message: "Concert not found!",
+        user: req.user
+      });
+      return;
+    }
+
+    res.render('details', {
+      concert: concert[0],
+      user: req.session.user || req.user
+    });
+  } catch (error) {
+    console.error('獲取演唱會詳情失敗:', error);
+    res.status(500).render('info', {
+      message: '獲取資料時發生錯誤',
+      user: req.session.user || req.user
+    });
+  } finally {
+    await client.close();
+  }
+};
+
 const handle_Delete = async (req, res) => {
   try {
     if (!req.query._id) {
@@ -871,12 +890,10 @@ const handle_Delete = async (req, res) => {
   }
 };
 
-//
-//
-//
 
-const port = process.env.PORT || 8099;
-app.listen(port, () => {
-  console.log(`Listening at http://localhost:${port}`);
+
+app.listen(port, host, () => {
+  console.log(`Server running at http://${host}:${port}/`);
 });
 
+app.use(express.static('public'));

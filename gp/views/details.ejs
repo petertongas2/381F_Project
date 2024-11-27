@@ -53,9 +53,14 @@ async function deleteConcert(concertId) {
         </div>
         <div class="concert-details">
             <div class="concert-image-container">
-                <img src="<%= concert.image || '/images/noimage.jpg' %>" 
-                     alt="<%= concert.title %>"
-                     onerror="this.src='/images/noimage.jpg'">
+                <% if (concert.image) { %>
+                    <img src="data:image/jpeg;base64,<%= concert.image %>" 
+                         alt="<%= concert.title %>"
+                         onerror="this.src='/images/noimage.jpg'">
+                <% } else { %>
+                    <img src="/images/noimage.jpg" 
+                         alt="<%= concert.title %>">
+                <% } %>
             </div>
             <h2><%= concert.title %></h2>
             <div class="info-group">

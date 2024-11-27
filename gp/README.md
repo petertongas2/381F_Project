@@ -2,9 +2,9 @@
 A web application for query concert information with authentication. (modify function only for login user)
 ## GP NO:43
 - Group Member:
-  - Name: Tong Tsz Ho, ID:12591345
-  - Name: Ma Kam Chiu, ID:13687015
-  - Name: Lee Chak Fung Bond, ID:13173016
+  - Name: Tong Tsz Ho, SID:12591345
+  - Name: Ma Kam Chiu, SID:13687015
+  - Name: Lee Chak Fung Bond, SID:13173016
   - Name:
 ## Project Structure:
 

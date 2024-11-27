@@ -646,8 +646,102 @@ const deleteDocument = async (db, criteria) => {
   return results;
 };
 //
-//
-//
+// API 路由設定
+// 獲取單個演唱會
+app.get('/api/concerts/:id', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const concert = await findDocument(db, { 
+      _id: new ObjectId(req.params.id) 
+    });
+
+    if (concert.length === 0) {
+      return res.status(404).json({ 
+        success: false,
+        message: '找不到該演唱會'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: concert[0]
+    });
+
+  } catch (error) {
+    console.error('獲取演唱會失敗:', error);
+    res.status(500).json({
+      success: false,
+      message: '伺服器錯誤'
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// 新增演唱會
+app.post('/api/concerts', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const result = await db.collection(collectionName).insertOne(req.fields);
+    res.status(201).json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,   
+      message: error.message
+    });
+  } finally {
+    await client.close();
+  }
+});
+
+// 更新演唱會
+app.put('/api/concerts/:id', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const result = await updateDocument(db, {
+      _id: new ObjectId(req.params.id)
+    }, req.fields);
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message  
+    });
+  } finally {
+    await client.close(); 
+  }
+});
+
+// 刪除演唱會
+app.delete('/api/concerts/:id', async (req, res) => {
+  try {
+    await client.connect();
+    const db = client.db(dbName);
+    const result = await deleteDocument(db, {
+      _id: new ObjectId(req.params.id)
+    });
+    res.json({
+      success: true,
+      data: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  } finally {
+    await client.close();
+  }
+});
 
 // function
 //

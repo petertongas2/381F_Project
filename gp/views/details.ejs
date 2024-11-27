@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>演唱會詳情 - 票務系統</title>
+    <title>演唱會詳情 - 演唱會查詢系統</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <script>
@@ -81,6 +81,13 @@ async function deleteConcert(concertId) {
             <div class="info-group">
                 <strong>票價：</strong><%= concert.ticketFee %>
             </div>
+            
+            <div class="info-group">
+            <% if (concert.photo) { %>
+            <img src="data:image/jpg;base64, <%= concert.photo %>"><br>
+            <% } %>
+            </div>
+            
             <div class="action-buttons">
                 <% if (user) { %>
                     <a href="/edit?_id=<%= concert._id %>" class="btn">編輯</a>

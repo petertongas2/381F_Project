@@ -715,6 +715,7 @@ const handle_Create = async (req, res) => {
     await client.connect();
     const db = client.db(dbName);
 
+<<<<<<< HEAD
     let imageUrl = '/images/noimage.jpg'; // 設定預設圖片路徑
     if (req.files && req.files.image) {
       const imagePath = req.files.image.path;
@@ -748,7 +749,33 @@ const handle_Create = async (req, res) => {
   } finally {
     await client.close();
   }
+=======
+  const newConcert = {
+    title: req.fields.title,
+    date: req.fields.date,
+    location: req.fields.location,
+    description: req.fields.description,
+    ticketFee: req.fields.ticketFee,
+    time: req.fields.time,
+    content: req.fields.content,
+    artist: req.fields.artist,
+  };
+  //upload image
+  const filePath = req.files.filetoupload.path;  
+  const data = await fsPromises.readFile(filePath); 
+  newConcert.photo = Buffer.from(data).toString('base64');
+  
+  await insertDocument(db, newConcert);
+  await client.close();
+  res.redirect('/content');
+>>>>>>> a0b7222edc110c40684b64f115a9a17716b72969
 };
+//for check exist
+const fs = require('fs'); 
+if (!fs.existsSync('./uploads')) 
+{ 
+fs.mkdirSync('./uploads'); 
+}
 
 const handle_Details = async (req, res, query) => {
   try {
@@ -855,7 +882,8 @@ const handle_Update = async (req, res) => {
       artist: req.fields.artist,
       lastModified: new Date()
     };
-
+    const data = await fsPromises.readFile(req.files.filetoupload.path);
+    updateData.photo = Buffer.from(data).toString('base64');
     await client.connect();
     const db = client.db(dbName);
     const result = await updateDocument(db, 

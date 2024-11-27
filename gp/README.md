@@ -13,7 +13,7 @@ A web application for query concert information with authentication. (modify fun
 - package.json:
 - public
 - views
-## Project functions instruction:
+## Project features instruction:
 - 
 ## The cloud-based server URL for testing:
 - https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/

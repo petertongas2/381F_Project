@@ -9,6 +9,7 @@
   "dependencies": {
     "bcrypt": "^5.1.1",
     "connect-flash": "^0.1.1",
+    "cors": "^2.8.5",
     "ejs": "*",
     "express": "^4.21.1",
     "express-formidable": "*",
@@ -17,8 +18,7 @@
     "multer": "^1.4.5-lts.1",
     "passport": "*",
     "passport-facebook": "^3.0.0",
-    "passport-github": "*",
-    "cors": "^2.8.5"
+    "passport-github": "*"
   },
   "devDependencies": {
     "jest": "^29.7.0",

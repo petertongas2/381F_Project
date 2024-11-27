@@ -630,13 +630,21 @@ const handle_Create = async (req, res) => {
     content: req.fields.content,
     artist: req.fields.artist,
   };
-
+  //upload image
+  const filePath = req.files.filetoupload.path;  
+  const data = await fsPromises.readFile(filePath); 
+  newConcert.photo = Buffer.from(data).toString('base64');
+  
   await insertDocument(db, newConcert);
-
   await client.close();
-
   res.redirect('/content');
 };
+//for check exist
+const fs = require('fs'); 
+if (!fs.existsSync('./uploads')) 
+{ 
+fs.mkdirSync('./uploads'); 
+}
 
 const handle_Details = async (req, res, criteria) => {
   await client.connect();
@@ -694,7 +702,8 @@ const handle_Update = async (req, res) => {
 	    content: req.fields.content, 
 	    artist: req.fields.artist,
     };
-
+    const data = await fsPromises.readFile(req.files.filetoupload.path);
+    updateData.photo = Buffer.from(data).toString('base64');
     await client.connect();
     const db = client.db(dbName);
     const result = await updateDocument(db, 

@@ -10,9 +10,36 @@ var 	{ MongoClient, ServerApiVersion, ObjectId } 	= require('mongodb');
 const bcrypt = require('bcrypt');  // 添加這行
 const userCollectionName = 'users';
 const flash = require('connect-flash');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
-//mongodb
-//
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'public/uploads/') // 確保這個目錄存在
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname))
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 限制 5MB
+  },
+  fileFilter: function (req, file, cb) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!allowedTypes.includes(file.mimetype)) {
+      return cb(new Error('只允許上傳 JPG、PNG 或 GIF 格式的圖片'));
+    }
+    cb(null, true);
+  }
+});
+
+
+
 const mongourl = 'mongodb+srv://bondlcf123:123@cluster0.hchfj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const dbName = 'concert';
 const collectionName = 'concertinfo';
@@ -23,6 +50,11 @@ const client = new MongoClient(mongourl, {
     deprecationErrors: true,
   },
 });
+
+const uploadDir = path.join(__dirname, 'public/uploads');
+if (!fs.existsSync(uploadDir)){
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // 2. 創建初始化函數
 async function initializeDatabase() {
@@ -37,15 +69,14 @@ async function initializeDatabase() {
 // 3. 修改用戶創建函數
 async function createUser(userData) {
   try {
-    await client.connect();
+    await client.connect(); 
     const db = client.db(dbName);
     const result = await db.collection(userCollectionName).insertOne({
       username: userData.username,
       password: userData.password,
       createdAt: new Date(),
-      // 初始化這些陣列
-      registeredConcerts: [],
-      favoriteConcerts: []
+      // 移除 registeredConcerts
+      favoriteConcerts: []  // 只保留收藏功能
     });
     return result;
   } catch (error) {
@@ -76,14 +107,20 @@ passport.deserializeUser((user, done) => {
 app.use(session({
   secret: "tHiSiSasEcRetStr",
   resave: true,
-  saveUninitialized: true
+  saveUninitialized: false,
+  cookie: { 
+    secure: false,
+    maxAge: 24 * 60 * 60 * 1000,
+    httpOnly: true
+  }
 }));
 
 app.use(formidable({
   encoding: 'utf-8',
-  uploadDir: './uploads',
+  uploadDir: './public/uploads',  // 修改上傳路徑
+  keepExtensions: true,
   multiples: true,
-  keepExtensions: true
+  maxFileSize: 5 * 1024 * 1024 // 5MB
 }));
 
 app.use(flash());
@@ -95,6 +132,11 @@ app.use((req, res, next) => {
     fields: req.fields,
     path: req.path
   });
+  next();
+});
+app.use((req, res, next) => {
+  console.log('Session:', req.session);
+  console.log('User:', req.session.user);
   next();
 });
  
@@ -128,8 +170,13 @@ function (accessToken, refreshToken, profile, cb) {
   return cb(null, user);
 }));
 
-//
-//
+
+// 添加在路由之前
+app.use((req, res, next) => {
+  res.locals.user = req.session.user || req.user;
+  res.locals.isAuthenticated = !!res.locals.user;
+  next();
+});
 
 app.use((req, res, next) => {
   let d = new Date();
@@ -263,7 +310,7 @@ app.post('/register', async (req, res) => {
 app.post('/login/local', async (req, res) => {
   try {
     const { username, password } = req.fields;
-    
+
     if (!username || !password) {
       return res.status(400).render('info', {
         message: '請提供使用者名稱和密碼',
@@ -292,15 +339,35 @@ app.post('/login/local', async (req, res) => {
       });
     }
 
-    // 設置 session
-    req.session.user = {
-      username: user.username,
-      name: user.username,  // 使用 username 作為顯示名稱
-      type: 'local'        // 本地登入
-    };
+    // 修改 session 設置
+    req.session.regenerate((err) => {
+      if (err) {
+        console.error('Session regenerate error:', err);
+        return res.status(500).render('info', {
+          message: '登入過程發生錯誤',
+          user: null
+        });
+      }
 
-    res.redirect('/');
-    
+      req.session.user = {
+        username: user.username,
+        name: user.username,
+        type: 'local',
+        isAuthenticated: true
+      };
+
+      req.session.save((err) => {
+        if (err) {
+          console.error('Session save error:', err);
+          return res.status(500).render('info', {
+            message: '登入過程發生錯誤',
+            user: null
+          });  
+        }
+        res.redirect('/content');
+      });
+    });
+
   } catch(error) {
     console.error('登入錯誤:', error);
     res.status(500).render('info', {
@@ -348,8 +415,41 @@ app.post('/update', isLoggedIn, (req, res) => {
   handle_Update(req, res, req.query);
 });
 
-app.get('/delete', isLoggedIn, (req, res) => {
-  handle_Delete(req, res);
+app.delete('/concerts/:id', isLoggedIn, async (req, res) => {
+  try {
+    if (!req.params.id) {
+      return res.status(400).json({ 
+        success: false,
+        message: "缺少演唱會 ID"
+      });
+    }
+
+    await client.connect();
+    const db = client.db(dbName);
+    const result = await deleteDocument(db, { 
+      _id: new ObjectId(req.params.id) 
+    });
+
+    if (result.deletedCount === 1) {
+      res.json({
+        success: true,
+        message: "演唱會已成功刪除"
+      });
+    } else {
+      res.status(404).json({ 
+        success: false,
+        message: "找不到該演唱會"
+      });
+    }
+  } catch (error) {
+    console.error("刪除演唱會時發生錯誤:", error);
+    res.status(500).json({
+      success: false, 
+      message: "刪除演唱會時發生錯誤"
+    });
+  } finally {
+    await client.close();
+  }
 });
 
 app.get("/logout", (req, res) => {
@@ -376,17 +476,8 @@ app.get('/profile', isLoggedIn, async (req, res) => {
       });
     }
 
-    // 確保陣列存在
-    const registeredIds = user.registeredConcerts || [];
     const favoriteIds = user.favoriteConcerts || [];
-
-    // 使用 ObjectId 轉換前先檢查陣列是否為空
-    const registeredConcerts = registeredIds.length > 0 
-      ? await db.collection(collectionName)
-          .find({ _id: { $in: registeredIds.map(id => new ObjectId(id)) } })
-          .toArray()
-      : [];
-      
+    
     const favoriteConcerts = favoriteIds.length > 0
       ? await db.collection(collectionName)
           .find({ _id: { $in: favoriteIds.map(id => new ObjectId(id)) } })
@@ -395,13 +486,13 @@ app.get('/profile', isLoggedIn, async (req, res) => {
 
     res.render('profile', {
       user: req.user,
-      registeredConcerts,
       favoriteConcerts
     });
+    
   } catch (error) {
     console.error('獲取個人資料錯誤:', error);
     res.status(500).render('info', {
-      message: '獲取資料時發生錯誤',
+      message: '獲取資料時發生錯誤', 
       user: req.user
     });
   } finally {
@@ -542,6 +633,7 @@ app.get('/*', (req, res) => {
   });
 });
 
+app.use(express.static('public'));
 
 
 //CRUD
@@ -580,6 +672,8 @@ const deleteDocument = async (db, criteria) => {
 
 // function
 //
+
+
 //
 const handle_Find = async (req, res, criteria) => {
   try {
@@ -617,37 +711,95 @@ const handle_Find = async (req, res, criteria) => {
 };
 
 const handle_Create = async (req, res) => {
-  await client.connect();
-  const db = client.db(dbName);
+  try {
+    await client.connect();
+    const db = client.db(dbName);
 
-  const newConcert = {
-    title: req.fields.title,
-    date: req.fields.date,
-    location: req.fields.location,
-    description: req.fields.description,
-    ticketFee: req.fields.ticketFee,
-    time: req.fields.time,
-    content: req.fields.content,
-    artist: req.fields.artist,
-  };
+    let imageUrl = '/images/noimage.jpg'; // 設定預設圖片路徑
+    if (req.files && req.files.image) {
+      const imagePath = req.files.image.path;
+      imageUrl = '/uploads/' + path.basename(imagePath);
+      console.log('上傳圖片路徑:', imageUrl);
+    }
 
-  await insertDocument(db, newConcert);
+    const newConcert = {
+      title: req.fields.title,
+      date: req.fields.date,
+      location: req.fields.location,
+      description: req.fields.description,
+      ticketFee: req.fields.ticketFee,
+      time: req.fields.time,
+      content: req.fields.content,
+      artist: req.fields.artist,
+      image: imageUrl, // 一定會有圖片路徑，要麼是上傳的，要麼是預設的
+      createdAt: new Date()
+    };
 
-  await client.close();
-
-  res.redirect('/content');
+    console.log('新演唱會資料:', newConcert);
+    await insertDocument(db, newConcert);
+    
+    res.redirect('/content');
+  } catch (error) {
+    console.error('創建演唱會失敗:', error);
+    res.status(500).render('info', {
+      message: '創建演唱會時發生錯誤',
+      user: req.user
+    });
+  } finally {
+    await client.close();
+  }
 };
 
-const handle_Details = async (req, res, criteria) => {
-  await client.connect();
-  const db = client.db(dbName);
+const handle_Details = async (req, res, query) => {
+  try {
+    console.log('Session:', req.session); // 調試用
+    console.log('User:', req.user); // 調試用
+    
+    const currentUser = req.session.user || req.user;
+    console.log('Current user:', currentUser); // 調試用
 
-  const concert = await findDocument(db, { _id: new ObjectId(criteria._id) });
+    await client.connect();
+    const db = client.db(dbName);
+    
+    const concert = await db.collection(collectionName).findOne({ 
+      _id: new ObjectId(query._id) 
+    });
 
+    if (!concert) {
+      return res.status(404).render('info', {
+        message: '找不到該演唱會',
+        user: currentUser
+      });
+    }
 
-  await client.close();
+    const concertWithDefaults = {
+      title: concert.title || '',
+      date: concert.date || '',
+      time: concert.time || '',
+      location: concert.location || '',
+      description: concert.description || '',
+      content: concert.content || '',
+      artist: concert.artist || '',
+      ticketFee: concert.ticketFee || '',
+      image: concert.image || '/images/noimage.jpg',
+      _id: concert._id
+    };
 
-  res.render('details', { concert: concert[0], user: req.user });
+    res.render('details', {
+      concert: concertWithDefaults,
+      user: currentUser,  
+      isAuthenticated: !!currentUser
+    });
+
+  } catch(error) {
+    console.error('獲取演唱會詳情失敗:', error);
+    res.status(500).render('info', {
+      message: '獲取資料時發生錯誤',
+      user: req.session.user || req.user
+    });
+  } finally {
+    await client.close();
+  }
 };
 
 const handle_Edit = async (req, res, criteria) => {
@@ -676,12 +828,20 @@ const handle_Edit = async (req, res, criteria) => {
 };
 const handle_Update = async (req, res) => {
   try {
+    console.log('Session:', req.session); // 調試用
+    console.log('User:', req.user); // 調試用
+
     if (!req.query._id) {
       res.status(400).render('info', { 
         message: "Missing concert ID!", 
-        user: req.user || null 
+        user: req.session.user || req.user || null 
       });
       return;
+    }
+
+    const currentUser = req.session.user || req.user;
+    if (!currentUser) {
+      return res.redirect('/login');
     }
 
     const updateData = {
@@ -690,9 +850,10 @@ const handle_Update = async (req, res) => {
       location: req.fields.location,
       description: req.fields.description,
       ticketFee: req.fields.ticketFee, 
-	    time: req.fields.time, 
-	    content: req.fields.content, 
-	    artist: req.fields.artist,
+      time: req.fields.time, 
+      content: req.fields.content, 
+      artist: req.fields.artist,
+      lastModified: new Date()
     };
 
     await client.connect();
@@ -705,13 +866,16 @@ const handle_Update = async (req, res) => {
     if (result.modifiedCount === 1) {
       res.redirect('/content');
     } else {
-      res.status(404).render('info', { message: "Concert not found or no changes made!", user: req.user });
+      res.status(404).render('info', { 
+        message: "Concert not found or no changes made!", 
+        user: currentUser 
+      });
     }
   } catch (error) {
     console.error("Error updating concert:", error);
     res.status(500).render('info', { 
       message: "Database error!", 
-      user: req.user || null 
+      user: req.session.user || req.user || null 
     });
   }
 };

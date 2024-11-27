@@ -20,25 +20,10 @@
         
         <div class="profile-section">
             <div class="tab-buttons">
-                <button class="tab-btn active" onclick="showTab('registered')">已報名的演唱會</button>
-                <button class="tab-btn" onclick="showTab('favorite')">收藏的演唱會</button>
+                <button class="tab-btn active" onclick="showTab('favorite')">收藏的演唱會</button>
             </div>
-
-            <div id="registered" class="tab-content">
-                <h3>已報名的演唱會 (<%= registeredConcerts.length %>)</h3>
-                <div class="concert-grid">
-                    <% registeredConcerts.forEach(concert => { %>
-                        <div class="concert-card">
-                            <h4><%= concert.title %></h4>
-                            <p>日期: <%= concert.date %></p>
-                            <p>地點: <%= concert.location %></p>
-                            <a href="/details?_id=<%= concert._id %>" class="btn">查看詳情</a>
-                        </div>
-                    <% }); %>
-                </div>
-            </div>
-
-            <div id="favorite" class="tab-content" style="display: none;">
+        
+            <div id="favorite" class="tab-content">
                 <h3>收藏的演唱會 (<%= favoriteConcerts.length %>)</h3>
                 <div class="concert-grid">
                     <% favoriteConcerts.forEach(concert => { %>

@@ -47,11 +47,43 @@
                 <label for="ticketFee">票價</label>
                 <input type="number" id="ticketFee" name="ticketFee" required>
             </div>
+            <div class="form-group">
+                <label for="image">演唱會海報 (選填)</label>
+                <input type="file" 
+                       id="image" 
+                       name="image" 
+                       accept="image/*" 
+                       onchange="previewImage(this)">
+                <div class="preview-container">
+                    <img id="image-preview" 
+                         src="/images/noimage.jpg" 
+                         alt="預覽圖片" 
+                         style="max-width:200px;">
+                </div>
+            </div>
             <div class="action-buttons">
                 <button type="submit" class="btn">儲存</button>
                 <a href="/content" class="btn">返回列表</a>
             </div>
         </form>
+
+        <script>
+            document.getElementById('image').onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    const preview = document.getElementById('image-preview');
+                    const container = document.querySelector('.preview-container');
+                    
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        container.style.display = 'block';
+                    }
+                    
+                    reader.readAsDataURL(file);
+                }
+            }
+            </script>
     </div>
 </body>
 </html>

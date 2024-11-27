@@ -154,11 +154,15 @@
     <div class="concert-grid">
         <% concerts.forEach(concert => { %>
             <div class="concert-card">
-                    <div class="concert-image">
-                        <img src="<%= concert.image || '/images/noimage.jpg' %>" 
-                             alt="<%= concert.title %>"
-                             onerror="this.src='/images/noimage.jpg'">
-                    </div>
+                <div class="concert-image">
+                    <% if (concert.image) { %>
+                        <img src="data:image/jpeg;base64,<%= concert.image %>" 
+                             alt="<%= concert.title %>">
+                    <% } else { %>
+                        <img src="/images/noimage.jpg" 
+                             alt="<%= concert.title %>">
+                    <% } %>
+                </div>
                 <div class="concert-info">
                     <div>
                         <div class="concert-title">

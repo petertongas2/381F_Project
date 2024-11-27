@@ -11,6 +11,7 @@ const bcrypt = require('bcrypt');  // 添加這行
 const userCollectionName = 'users';
 const flash = require('connect-flash');
 const multer = require('multer');
+const formidableMiddleware = require('express-formidable');
 const fs = require('fs');
 const path = require('path');
 
@@ -55,6 +56,8 @@ const uploadDir = path.join(__dirname, 'public/uploads');
 if (!fs.existsSync(uploadDir)){
     fs.mkdirSync(uploadDir, { recursive: true });
 }
+
+
 
 // 2. 創建初始化函數
 async function initializeDatabase() {
@@ -183,6 +186,12 @@ app.use((req, res, next) => {
   console.log(`TRACE: ${req.path} was requested at ${d.toLocaleDateString()}`);
   next();
 });
+
+app.use(formidableMiddleware({
+  uploadDir: './uploads',    // 設定上傳目錄
+  keepExtensions: true,      // 保留檔案副檔名
+  maxFieldsSize: 10 * 1024 * 1024  // 最大上傳大小 10MB
+}));
 
 app.get("/login", (req, res) => {
   res.status(200).render('login', { 
@@ -675,30 +684,36 @@ const deleteDocument = async (db, criteria) => {
 
 
 //
-const handle_Find = async (req, res, criteria) => {
+const handle_Find = async (req, res) => {
   try {
     await client.connect();
     const db = client.db(dbName);
     
-    // 獲取使用者的收藏清單
-    const user = await db.collection(userCollectionName).findOne({ 
-      username: req.user.username 
-    });
-    const favoriteIds = user.favoriteConcerts || [];
+    // 獲取所有演唱會
+    const concerts = await db.collection(collectionName).find({}).toArray();
     
-    // 查詢所有演唱會
-    const concerts = await findDocument(db, criteria);
-    
-    const concertsWithFavoriteStatus = concerts.map(concert => ({
-      ...concert,
-      isFavorited: favoriteIds.includes(concert._id.toString())
-    }));
+    // 如果用戶已登入，添加收藏狀態
+    if (req.user) {
+      const user = await db.collection(userCollectionName).findOne({
+        username: req.user.username
+      });
+      const favoriteIds = user?.favoriteConcerts || [];
+      
+      const concertsWithFavorites = concerts.map(concert => ({
+        ...concert,
+        isFavorited: favoriteIds.includes(concert._id.toString())
+      }));
 
-    res.render('list', { 
-      user: req.user, 
-      concerts: concertsWithFavoriteStatus 
-    });
-    
+      res.render('home', { 
+        concerts: concertsWithFavorites,
+        user: req.user
+      });
+    } else {
+      res.render('home', { 
+        concerts: concerts,
+        user: null
+      });
+    }
   } catch (error) {
     console.error('獲取演唱會列表失敗:', error);
     res.status(500).render('info', {
@@ -714,91 +729,36 @@ const handle_Create = async (req, res) => {
   try {
     await client.connect();
     const db = client.db(dbName);
-
+    
+    // 建立新演唱會物件
     const newConcert = {
       title: req.fields.title,
       date: req.fields.date,
+      time: req.fields.time,
       location: req.fields.location,
       description: req.fields.description,
-      ticketFee: req.fields.ticketFee,
-      time: req.fields.time,
       content: req.fields.content,
       artist: req.fields.artist,
+      ticketFee: req.fields.ticketFee,
       createdAt: new Date()
     };
 
-    // 處理圖片上傳
+    // 處理圖片
     if (req.files && req.files.image) {
-      const filePath = req.files.image.path;
-      const data = await fsPromises.readFile(filePath);
-      newConcert.photo = Buffer.from(data).toString('base64');
+      const imageData = await fsPromises.readFile(req.files.image.path);
+      newConcert.image = Buffer.from(imageData).toString('base64');
+      // 刪除暫存檔
+      await fsPromises.unlink(req.files.image.path);
     }
 
-    await insertDocument(db, newConcert);
+    // 插入資料庫
+    await db.collection(collectionName).insertOne(newConcert);
     res.redirect('/content');
-
   } catch (error) {
-    console.error('創建演唱會失敗:', error);
+    console.error('建立演唱會失敗:', error);
     res.status(500).render('info', {
-      message: '創建演唱會時發生錯誤',
+      message: '建立演唱會時發生錯誤',
       user: req.user
-    });
-  } finally {
-    await client.close();
-  }
-};
-
-// 確保上傳目錄存在
-if (!fs.existsSync('./uploads')) {
-  fs.mkdirSync('./uploads', { recursive: true });
-}
-
-const handle_Details = async (req, res, query) => {
-  try {
-    console.log('Session:', req.session); // 調試用
-    console.log('User:', req.user); // 調試用
-    
-    const currentUser = req.session.user || req.user;
-    console.log('Current user:', currentUser); // 調試用
-
-    await client.connect();
-    const db = client.db(dbName);
-    
-    const concert = await db.collection(collectionName).findOne({ 
-      _id: new ObjectId(query._id) 
-    });
-
-    if (!concert) {
-      return res.status(404).render('info', {
-        message: '找不到該演唱會',
-        user: currentUser
-      });
-    }
-
-    const concertWithDefaults = {
-      title: concert.title || '',
-      date: concert.date || '',
-      time: concert.time || '',
-      location: concert.location || '',
-      description: concert.description || '',
-      content: concert.content || '',
-      artist: concert.artist || '',
-      ticketFee: concert.ticketFee || '',
-      image: concert.image || '/images/noimage.jpg',
-      _id: concert._id
-    };
-
-    res.render('details', {
-      concert: concertWithDefaults,
-      user: currentUser,  
-      isAuthenticated: !!currentUser
-    });
-
-  } catch(error) {
-    console.error('獲取演唱會詳情失敗:', error);
-    res.status(500).render('info', {
-      message: '獲取資料時發生錯誤',
-      user: req.session.user || req.user
     });
   } finally {
     await client.close();

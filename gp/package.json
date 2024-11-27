@@ -10,7 +10,7 @@
     "bcrypt": "^5.1.1",
     "connect-flash": "^0.1.1",
     "ejs": "*",
-    "express": "*",
+    "express": "^4.21.1",
     "express-formidable": "*",
     "express-session": "*",
     "mongodb": "^6.11.0",

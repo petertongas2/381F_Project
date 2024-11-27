@@ -44,6 +44,13 @@
             <div class="info-group">
                 <strong>票價：</strong><%= concert.ticketFee %>
             </div>
+            
+            <div class="info-group">
+            <% if (concert.photo) { %>
+            <img src="data:image/jpg;base64, <%= concert.photo %>"><br>
+            <% } %>
+            </div>
+            
             <div class="action-buttons">
                 <% if (user) { %>
                     <a href="/edit?_id=<%= concert._id %>" class="btn">編輯</a>

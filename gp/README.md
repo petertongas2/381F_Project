@@ -7,7 +7,7 @@ A web application for querying concert information with user authentication. Onl
   - Name: Lee Chak Fung Bond, SID:13173016
   - Name: Liu Yan Zuo , SID: 12727610
 ## Project Structure:
-my-app/
+```
 ├── public/
 │   ├── images/
 │   │   └── noimage.jpg
@@ -33,6 +33,7 @@ my-app/
 ├── package.json
 ├── server.js
 └── README.md
+```
 ## Project file instruction:
 - server.js:
   Implements server-side logic, including user authentication, routing, and handling RESTful API requests for CRUD operations.And Defines the MongoDB data schemas and models for concerts and users.

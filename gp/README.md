@@ -45,9 +45,9 @@ A web application for querying concert information with user authentication. Onl
 ### server.js:
   - Implements server-side logic, including user authentication, routing, and handling RESTful API requests for CRUD operations.And Defines the MongoDB data schemas and models for concerts and users.
 
-<details>
+
   
-<summary>Key Features and Modules:</summary>
+### Key Features and Modules:
 
 #### Authentication:
   - Uses passport for Facebook and GitHub login strategies.
@@ -83,8 +83,6 @@ A web application for querying concert information with user authentication. Onl
   
 #### Utilities:
   - Middleware for error handling and tracing user activity.
-
-</details>
   
 ### package.json:
   - Contains the project dependencies, scripts, and metadata.

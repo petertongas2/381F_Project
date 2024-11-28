@@ -50,8 +50,26 @@ A web application for querying concert information with user authentication. Onl
   Contains the project dependencies, scripts, and metadata.
 - public:
   Includes static files such as CSS, images, and JavaScript assets (if applicable).
-- views:
-  Contains EJS templates for rendering the user interface, such as login pages, concert management pages, and detail views.
+- create.ejs:
+  For creating new concerts entries.
+- details.ejs:
+  For displaying detailed information about a specific concert.
+- edit.ejs:
+  For editing existing concert data.
+- home.ejs:
+  For the home page of the application.
+- info.ejs:
+  
+- list.ejs:
+  
+- login.ejs:
+  For the login page(login in local or facebook, github login only for localhost).
+- profile.ejs:
+  For displaying user profiles and display favorite concert.
+- register.ejs:
+  For user registration.
+- reset-password.ejs:
+  For resetting user passwords.
 ## Project features instruction:
 - 
 ## The cloud-based server URL for testing:

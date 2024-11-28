@@ -127,17 +127,43 @@ app.use(cors({
 passport.use(new FacebookStrategy({
   clientID: '1215133756230490',
   clientSecret: '7f4e0f31c20126663d06a8746d26d493',
-  callbackURL: 'http://localhost:8099/auth/facebook/callback'
+  callbackURL: 'https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/auth/facebook/callback',
 },
- function (token, refreshToken, profile, done) {
- console.log("Facebook Profile: " + JSON.stringify(profile));
- user = {};
- user['id'] = profile.id;
- user['name'] = profile.displayName;
- user['type'] = profile.provider; // Facebook
- console.log('user object: ' + JSON.stringify(user));
- return done(null,user); // put user object into session => req.user
- }));
+async function (token, refreshToken, profile, done) {
+  console.log("Facebook Profile: " + JSON.stringify(profile));
+
+  const user = {
+    facebookId: profile.id,
+    username: profile.displayName,
+    type: profile.provider, // Facebook
+  };
+
+  console.log('User object: ' + JSON.stringify(user));
+
+  try {
+    await client.connect(); // Connect to the MongoDB database
+    const db = client.db('concert');
+    const usersCollection = db.collection('users');
+
+    // Check if the user already exists
+    let existingUser = await usersCollection.findOne({ facebookId: user.facebookId });
+
+    if (!existingUser) {
+      // Insert a new user if not found
+      await usersCollection.insertOne(user);
+      console.log('New user added:', user);
+    } else {
+      console.log('User already exists:', existingUser);
+    }
+
+    return done(null, user); // Pass the user object to `req.user`
+  } catch (error) {
+    console.error('Error interacting with MongoDB:', error);
+    return done(error, null);
+  } finally {
+    await client.close(); // Close the database connection
+  }
+}));
 
 passport.use(new GitHubStrategy({
     clientID: 'Ov23liEUpuNWpO4jsNOv',

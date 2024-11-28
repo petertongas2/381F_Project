@@ -46,32 +46,77 @@ A web application for querying concert information with user authentication. Onl
 ## Project file instruction:
 - server.js:
   Implements server-side logic, including user authentication, routing, and handling RESTful API requests for CRUD operations.And Defines the MongoDB data schemas and models for concerts and users.
+  
 - package.json:
   Contains the project dependencies, scripts, and metadata.
+  
 - public:
   Includes static files such as CSS, images, and JavaScript assets (if applicable).
+  
 - create.ejs:
   For creating new concerts entries.
+  
 - details.ejs:
   For displaying detailed information about a specific concert.
+  
 - edit.ejs:
   For editing existing concert data.
+  
 - home.ejs:
   For the home page of the application.
+  
 - info.ejs:
   For dynamically adjust its content and display relevant system messages based on the user's verification status.
+  
 - list.ejs:
   For presenting a concert listing. It includes search and sorting capabilities, a navigation bar, and the ability to bookmark concerts and view concert details.
+  
 - login.ejs:
   For the login page(login in local or facebook, github login only for localhost).
+
 - profile.ejs:
   For displaying user profiles and display favorite concert.
+
 - register.ejs:
   For user registration.
+
 - reset-password.ejs:
   For resetting user passwords.
+  
 ## Project features instruction:
-- 
+- User Authentication:
+Users must log in to access and use the system.
+Unauthorized users cannot perform CRUD operations.
+Authentication is implemented using cookie-session or a similar method.
+Concert Management (CRUD Functionality)
+
+- Create:
+Users can add new concert records by filling out a form with details such as title, date, time, location, description, artist, and ticket fee.
+
+- Read:
+Users can view a list of concerts and use advanced query filters to search by conditions like artist, date, or location.
+
+- Update:
+Logged-in users can edit concert information directly through the UI.
+
+- Delete:
+Users can delete specific concert entries, which are removed from the database.
+
+- Favorites System
+Logged-in users can mark concerts as favorites for quick access.
+
+- Responsive User Interface
+Web pages built with EJS templates for consistent and dynamic rendering.
+
+- RESTful API Services
+Exposes CRUD operations as RESTful APIs to allow testing and third-party integrations.
+
+- Cloud Hosting
+The application is deployed on Azure for easy accessibility.
+
+- Logout Functionality
+Users can securely log out of the system, clearing their session and preventing unauthorized access.
+
 ## The cloud-based server URL for testing:
 - https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/
 ## Operation guides

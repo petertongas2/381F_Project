@@ -42,7 +42,7 @@ async function deleteConcert(concertId) {
         <% } else { %>
             <!-- 已登入用戶 -->
             <a href="/" class="btn">返回首頁</a>
-            <a href="/profile" class="btn"><%= user.name %></a>
+            <a href="/profile" class="btn"><%= user.username %></a>
             <a href="/create" class="btn">新增演唱會</a>
             <a href="/logout" class="btn btn-danger">登出</a>
         <% } %>

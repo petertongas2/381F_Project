@@ -7,7 +7,32 @@ A web application for querying concert information with user authentication. Onl
   - Name: Lee Chak Fung Bond, SID:13173016
   - Name: Liu Yan Zuo , SID: 12727610
 ## Project Structure:
-
+my-app/
+├── public/
+│   ├── images/
+│   │   └── noimage.jpg
+│   ├── uploads/
+│   │   ├── upload_1039eb645fd604c5af...
+│   │   ├── upload_4752b9bb7f96a58dd...
+│   │   ├── upload_728148adb179c6717...
+│   │   ├── upload_774391006d7c3007ff...
+│   │   ├── upload_85a67d562418b4d6a...
+│   │   ├── upload_cf21c033ee01034797...
+│   │   ├── upload_d05e870ac209b348b...
+│   │   └── upload_e4df70203ca9328c3a...
+│   └── style.css
+├── test_images/
+│   └── test_concert.jpg
+├── views/
+│   ├── -F
+│   ├── -b
+│   └── FETCH_HEAD
+├── README.md
+├── cookies.txt
+├── package-lock.json
+├── package.json
+├── server.js
+└── README.md
 ## Project file instruction:
 - server.js:
   Implements server-side logic, including user authentication, routing, and handling RESTful API requests for CRUD operations.And Defines the MongoDB data schemas and models for concerts and users.
@@ -23,17 +48,37 @@ A web application for querying concert information with user authentication. Onl
 - https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/
 ## Operation guides
 ### user flow
--  Login: Authenticate using valid credentials.
+-  Login: Authenticate using valid credentials.Can Login by Username, Password / Facebook / github(local)
 
 ![圖片](https://github.com/user-attachments/assets/e7c6f38b-b889-4199-97fd-531aaf8f4585)
 
 -  Add New Concert: Create a new concert record via the "新增演唱會" button.
 
+![image](https://github.com/user-attachments/assets/044ebc7e-4300-47ed-92b4-6a43a4130a66)
+![image](https://github.com/user-attachments/assets/a123b619-2cd5-4372-84d8-e6305c5f2c92)
+![image](https://github.com/user-attachments/assets/8439d2d7-d3e0-43c8-983c-4068db7924a7)
+
 -  Favorite: Mark a concert as a favorite.
+
+![image](https://github.com/user-attachments/assets/ffca414f-5cef-44ab-b4b0-4fe9802c3ef1)
+![image](https://github.com/user-attachments/assets/643c7b94-b702-4489-88bf-510ba59db0fe)
+
+
 -  Check Details: View concert details by clicking on the concert entry.
+
+![image](https://github.com/user-attachments/assets/df5315c5-a1e6-457c-8d40-4687f83619e1)
+![image](https://github.com/user-attachments/assets/cf7ec709-668b-4d22-af5c-421525d54f85)
+
 -  Edit Concert: Modify existing concert information.
+
+
 -  Delete Concert: Remove a concert record.
+
+
 -  Logout: End the user session using the logout option.
+
+![image](https://github.com/user-attachments/assets/4b5822c0-d95a-4457-b7f4-126f64111aa6)
+
 ## RESTful API Testing with CURL
 Ensure you are logged in before testing these APIs.
 ### Login

@@ -1,0 +1,213 @@
+<html>
+<head>
+    <title>登入 - 演唱會查詢系統</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #70a1ff, #5352ed);
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .login-header h1 {
+            color: #2c3e50;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .login-subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .login-form {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #70a1ff;
+            box-shadow: 0 0 0 3px rgba(112,161,255,0.2);
+            outline: none;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: #70a1ff;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .login-btn:hover {
+            background: #5d8ef7;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(112,161,255,0.4);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e1e8ed;
+        }
+
+        .divider span {
+            padding: 0 10px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+        }
+
+        .facebook-btn {
+            background: #1877f2;
+        }
+
+        .github-btn {
+            background: #333;
+        }
+
+        .oauth-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .oauth-btn i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #666;
+        }
+
+        .register-link a {
+            color: #70a1ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h1>演唱會查詢系統</h1>
+            <p class="login-subtitle">歡迎回來</p>
+        </div>
+
+        <form class="login-form" action="/login/local" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="username">使用者名稱</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">密碼</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="login-btn">登入</button>
+        </form>
+
+        <div class="divider">
+            <span>或使用以下方式登入</span>
+        </div>
+
+        <div class="oauth-buttons">
+            <a href="/auth/facebook" class="oauth-btn facebook-btn">
+                <i class="fab fa-facebook-f"></i>
+                使用 Facebook 登入
+            </a>
+            <a href="/auth/github" class="oauth-btn github-btn">
+                <i class="fab fa-github"></i>
+                使用 GitHub 登入 (only for local login)
+            </a>
+        </div>
+
+        <div class="register-link">
+            還沒有帳號？ <a href="/register">註冊新帳號</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+<html>
+<head>
+    <title>建立新演唱會 - 演唱會查詢系統</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .preview-container {
+            margin-top: 10px;
+            max-width: 300px; /* 限制最大寬度 */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        #image-preview {
+            width: 100%;
+            height: auto;
+            max-height: 300px; /* 限制最大高度 */
+            object-fit: contain; /* 保持圖片比例 */
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/content" class="btn">返回列表</a>
+        <a href="/profile" class="btn"><%= user.username %></a>
+        <a href="/create" class="btn">新增演唱會</a>
+        <a href="/logout" class="btn btn-danger">登出</a>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>建立新演唱會</h1>
+        </div>
+        <form action="/create" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="title">演唱會名稱</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div class="form-group">
+                <label for="date">日期</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="time">時間</label>
+                <input type="time" id="time" name="time" required>
+            </div>
+            <div class="form-group">
+                <label for="location">地點</label>
+                <input type="text" id="location" name="location" required>
+            </div>
+            <div class="form-group">
+                <label for="description">描述</label>
+                <textarea id="description" name="description" required rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="content">內容</label>
+                <textarea id="content" name="content" required rows="4"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="artist">藝人</label>
+                <input type="text" id="artist" name="artist" required>
+            </div>
+            <div class="form-group">
+                <label for="ticketFee">票價</label>
+                <input type="number" id="ticketFee" name="ticketFee" required>
+            </div>
+            <div class="form-group">
+                <label for="image">演唱會海報</label>
+                <input type="file" 
+                       id="image" 
+                       name="image"
+                       accept="image/*"
+                       onchange="previewImage(this)">
+                <div class="preview-container" style="display:none;">
+                    <img id="image-preview" src="#" alt="預覽圖片">
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button type="submit" class="btn">儲存</button>
+                <a href="/content" class="btn">返回列表</a>
+            </div>
+        </form>
+
+        <script>
+            function previewImage(input) {
+                const file = input.files[0];
+                const preview = document.getElementById('image-preview');
+                const container = document.querySelector('.preview-container');
+                
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        container.style.display = 'block';
+                        
+                        // 確保圖片載入後適當調整大小
+                        preview.onload = function() {
+                            if (this.naturalHeight > 300) {
+                                this.style.height = '300px';
+                            }
+                        }
+                    }
+                    
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.src = '#';
+                    container.style.display = 'none';
+                }
+            }
+        </script>
+    </div>
+</body>
+</html>

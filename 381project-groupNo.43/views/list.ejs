@@ -1,0 +1,241 @@
+<html>
+<head>
+    <title>演唱會列表 - 演唱會查詢系統</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        .page-content {
+            padding-top: 80px;
+        }
+        
+        .welcome-banner {
+            background: linear-gradient(135deg, #70a1ff, #5352ed);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 50px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #70a1ff;
+            box-shadow: 0 0 0 3px rgba(112,161,255,0.2);
+        }
+
+        .concert-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .concert-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .concert-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .concert-info {
+            padding: 20px;
+        }
+
+        .concert-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .concert-details {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .concert-actions {
+            padding: 15px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="/create" class="btn">新增演唱會</a>
+        <a href="/profile" class="btn"><%= user.username %></a>
+        <a href="/" class="btn">返回首頁</a>
+        <a href="/logout" class="btn btn-danger">登出</a>
+    </div>
+
+    <div class="page-content">
+        <div class="container">
+            <div class="welcome-banner">
+                <h1>演唱會列表</h1>
+                <p>歡迎, <%= user.username %> (登入方式：<%= user.type %>)</p>
+            </div>
+
+            <div class="search-section">
+                <input type="text" 
+                       class="search-input" 
+                       placeholder="搜尋演唱會名稱或地點..." 
+                       oninput="filterConcerts(this.value)">
+                <p class="search-result">
+                    共找到 <span id="concert-count"><%= concerts.length %></span> 場演唱會
+                </p>
+            </div>
+	<div class="sort-section">
+	    <select id="sort-select" onchange="sortConcerts()">
+		<option value="name">按名稱排序</option>
+		<option value="time">按時間排序</option>
+	    </select>
+	</div>
+            <div class="concert-grid">
+                <% concerts.forEach(concert => { %>
+                    <div class="concert-card">
+                        <div class="concert-info">
+                            <div class="concert-title">
+                                <%= concert.title %>
+                            </div>
+                            <div class="concert-details">
+                                <p><i class="far fa-calendar"></i> <%= concert.date %></p>
+                                <p><i class="fas fa-map-marker-alt"></i> <%= concert.location %></p>
+                            </div>
+                        </div>
+                        <div class="concert-actions">
+                            <button class="favorite-btn" onclick="toggleFavorite('<%= concert._id %>')">
+                                <i class="far fa-star"></i>
+                                <span>收藏</span>
+                            </button>
+                            <a href="/details?_id=<%= concert._id %>" class="btn">查看詳情</a>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        </div>
+    </div>
+
+  
+<script>
+function sortConcerts() {
+    const sortSelect = document.getElementById('sort-select');
+    const sortBy = sortSelect.value;
+    const concertGrid = document.querySelector('.concert-grid');
+    const concerts = Array.from(concertGrid.children);
+
+    concerts.sort((a, b) => {
+        if (sortBy == 'name') {
+            return a.querySelector('.concert-title').textContent.localeCompare(b.querySelector('.concert-title').textContent);
+        } else if (sortBy == 'time') {
+            return new Date(a.querySelector('.concert-details .fa-calendar').nextSibling.textContent) - new Date(b.querySelector('.concert-details .fa-calendar').nextSibling.textContent);
+        }
+    });
+
+    concertGrid.innerHTML = '';
+    concerts.forEach(concert => concertGrid.appendChild(concert));
+}
+
+    function filterConcerts(searchText) {
+        const concerts = document.querySelectorAll('.concert-card');
+        let visibleCount = 0;
+        
+        concerts.forEach(concert => {
+            const title = concert.querySelector('.concert-title').textContent.toLowerCase();
+            const location = concert.querySelector('.concert-details').textContent.toLowerCase();
+            const searchLower = searchText.toLowerCase();
+            
+            if (title.includes(searchLower) || location.includes(searchLower)) {
+                concert.style.display = '';
+                visibleCount++;
+            } else {
+                concert.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('concert-count').textContent = visibleCount;
+    }
+
+    async function toggleFavorite(concertId) {
+        try {
+            const btn = event.currentTarget;
+            const icon = btn.querySelector('i');
+            
+            const response = await fetch('/toggle-favorite', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ concertId })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Server response was not ok');
+            }
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // 切換收藏狀態
+                if (data.isFavorited) {
+                    icon.classList.replace('far', 'fas');
+                    btn.classList.add('active');
+                    btn.querySelector('span').textContent = '已收藏';
+                } else {
+                    icon.classList.replace('fas', 'far');
+                    btn.classList.remove('active');
+                    btn.querySelector('span').textContent = '收藏';
+                }
+                
+                // 添加視覺反饋
+                btn.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    btn.style.transform = 'scale(1)';
+                }, 200);
+            }
+        } catch (error) {
+            console.error('收藏操作失敗:', error);
+            alert('收藏操作失敗，請稍後再試');
+        }
+    }
+
+    // 初始化收藏按鈕狀態
+    document.addEventListener('DOMContentLoaded', () => {
+        const favoriteBtns = document.querySelectorAll('.favorite-btn');
+        favoriteBtns.forEach(btn => {
+            const isFavorited = btn.dataset.favorited === 'true';
+            const icon = btn.querySelector('i');
+            if (isFavorited) {
+                icon.classList.replace('far', 'fas');
+                btn.classList.add('active');
+                btn.querySelector('span').textContent = '已收藏';
+            }
+        });
+    });
+</script>
+</body>
+</html>

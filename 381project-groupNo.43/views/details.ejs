@@ -1,0 +1,132 @@
+<html>
+<head>
+    <title>演唱會詳情 - 演唱會查詢系統</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<script>
+async function deleteConcert(concertId) {
+    // 確認視窗
+    if (!confirm('確定要刪除此演唱會嗎？')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/concerts/${concertId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            // 刪除成功後重定向到列表頁
+            window.location.href = '/content';
+        } else {
+            alert(data.message || '刪除失敗');
+        }
+    } catch (error) {
+        console.error('刪除演唱會時發生錯誤:', error);
+        alert('刪除演唱會時發生錯誤，請稍後再試');
+    }
+}
+</script>
+<body>
+    <div class="navbar">
+        <% if (!user) { %>
+            <!-- 未登入用戶 -->
+            <a href="/" class="btn">返回首頁</a>
+            <a href="/login" class="btn">登入</a>
+            <a href="/register" class="btn">註冊</a>
+        <% } else { %>
+            <!-- 已登入用戶 -->
+            <a href="/" class="btn">返回首頁</a>
+            <a href="/profile" class="btn"><%= user.username %></a>
+            <a href="/create" class="btn">新增演唱會</a>
+            <a href="/logout" class="btn btn-danger">登出</a>
+        <% } %>
+    </div>
+    <div class="container">
+        <div class="header">
+            <h1>演唱會詳情</h1>
+        </div>
+        <div class="concert-details">
+            <div class="concert-image-container">
+                <% if (concert.image) { %>
+                    <img src="data:image/jpeg;base64,<%= concert.image %>" 
+                         alt="<%= concert.title %>"
+                         onerror="this.src='/images/noimage.jpg'">
+                <% } else { %>
+                    <img src="/images/noimage.jpg" 
+                         alt="<%= concert.title %>">
+                <% } %>
+            </div>
+            <h2><%= concert.title %></h2>
+            <div class="info-group">
+                <strong>日期：</strong><%= concert.date %>
+            </div>
+            <div class="info-group">
+                <strong>時間：</strong><%= concert.time %>
+            </div>
+            <div class="info-group">
+                <strong>地點：</strong><%= concert.location %>
+            </div>
+            <div class="info-group">
+                <strong>描述：</strong>
+                <p><%= concert.description %></p>
+            </div>
+            <div class="info-group">
+                <strong>內容：</strong>
+                <p><%= concert.content %></p>
+            </div>
+            <div class="info-group">
+                <strong>藝人：</strong><%= concert.artist %>
+            </div>
+            <div class="info-group">
+                <strong>票價：</strong><%= concert.ticketFee %>
+            </div>
+            
+            <div class="info-group">
+            <% if (concert.photo) { %>
+            <img src="data:image/jpg;base64, <%= concert.photo %>"><br>
+            <% } %>
+            </div>
+            
+            <div class="action-buttons">
+                <% if (user) { %>
+                    <a href="/edit?_id=<%= concert._id %>" class="btn">編輯</a>
+                    <button 
+                        onclick="deleteConcert('<%= concert._id %>')" 
+                        class="btn btn-danger">
+                        刪除
+                    </button>
+                <% } %>
+                <a href="/" class="btn">返回列表</a>
+            </div>
+            </div>
+        </div>
+
+        <style>
+            .concert-image-container {
+                width: 100%;
+                max-width: 600px; /* 限制最大寬度 */
+                margin: 0 auto 30px; /* 上下margin 30px，左右自動置中 */
+                text-align: center;
+            }
+        
+            .concert-image-container img {
+                width: 100%;
+                height: auto;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease;
+            }
+        
+            .concert-image-container img:hover {
+                transform: scale(1.02);
+            }
+        </style>
+    </div>
+</body>
+</html>

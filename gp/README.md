@@ -84,12 +84,13 @@ A web application for querying concert information with user authentication. Onl
   For resetting user passwords.
   
 ## Project features instruction:
-- User Authentication:
-Users must log in to access and use the system.
-Unauthorized users cannot perform CRUD operations.
-Authentication is implemented using cookie-session or a similar method.
-Concert Management (CRUD Functionality)
 
+### User Authentication:
+- Users must log in to access and use the system.
+- Unauthorized users cannot perform CRUD operations.
+- Authentication is implemented using cookie-session or a similar method(facebook).
+
+### Concert Management (CRUD Functionality)
 - Create:
 Users can add new concert records by filling out a form with details such as title, date, time, location, description, artist, and ticket fee.
 
@@ -102,19 +103,19 @@ Logged-in users can edit concert information directly through the UI.
 - Delete:
 Users can delete specific concert entries, which are removed from the database.
 
-- Favorites System
+### Favorites System
 Logged-in users can mark concerts as favorites for quick access.
 
-- Responsive User Interface
+### Responsive User Interface
 Web pages built with EJS templates for consistent and dynamic rendering.
 
-- RESTful API Services
+### RESTful API Services
 Exposes CRUD operations as RESTful APIs to allow testing and third-party integrations.
 
-- Cloud Hosting
+### Cloud Hosting
 The application is deployed on Azure for easy accessibility.
 
-- Logout Functionality
+### Logout Functionality
 Users can securely log out of the system, clearing their session and preventing unauthorized access.
 
 ## The cloud-based server URL for testing:

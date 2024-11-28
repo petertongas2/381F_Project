@@ -168,6 +168,16 @@ Users can securely log out of the system, clearing their session and preventing 
 
 ![image](https://github.com/user-attachments/assets/4b5822c0-d95a-4457-b7f4-126f64111aa6)
 
+## RESTful CRUD services instruction
+APIs, HTTP request types and Path URI.
+
+|Operation |	HTTP Request Type |	Path URI	          |Description                    |       
+|----------|--------------------|---------------------|-------------------------------|
+|Create	   |POST	              |/api/concerts	      | Adds a new concert            |
+|Read      |GET	                |/api/concerts/:id	  | Retrieves a concert by its ID |
+|Update	   |PUT	                |/api/concerts/:id	  | Updates a concert by its ID   |
+|Delete	   |DELETE	            |/api/concerts/:id	  | Deletes a concert by its ID   |
+
 ## RESTful API Testing with CURL
 Ensure you are logged in before testing these APIs.
 ### Login

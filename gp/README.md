@@ -31,8 +31,7 @@ A web application for querying concert information with user authentication. Onl
 ├── cookies.txt
 ├── package-lock.json
 ├── package.json
-├── server.js
-└── README.md
+└── server.js
 ```
 ## Project file instruction:
 - server.js:

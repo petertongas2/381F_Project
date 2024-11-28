@@ -42,50 +42,91 @@ A web application for querying concert information with user authentication. Onl
 └── server.js
 ```
 ## Project file instruction:
-- server.js:
-  Implements server-side logic, including user authentication, routing, and handling RESTful API requests for CRUD operations.And Defines the MongoDB data schemas and models for concerts and users.
+### server.js:
+  - Implements server-side logic, including user authentication, routing, and handling RESTful API requests for CRUD operations.And Defines the MongoDB data schemas and models for concerts and users.
   
-- package.json:
-  Contains the project dependencies, scripts, and metadata.
-  
-- public:
-  Includes static files such as CSS, images, and JavaScript assets (if applicable).
-  
-- create.ejs:
-  For creating new concerts entries.
-  
-- details.ejs:
-  For displaying detailed information about a specific concert.
-  
-- edit.ejs:
-  For editing existing concert data.
-  
-- home.ejs:
-  For the home page of the application.
-  
-- info.ejs:
-  For dynamically adjust its content and display relevant system messages based on the user's verification status.
-  
-- list.ejs:
-  For presenting a concert listing. It includes search and sorting capabilities, a navigation bar, and the ability to bookmark concerts and view concert details.
-  
-- login.ejs:
-  For the login page(login in local or facebook, github login only for localhost).
+#### Key Features and Modules:
 
-- profile.ejs:
-  For displaying user profiles and display favorite concert.
+<details>
 
-- register.ejs:
-  For user registration.
+##### Authentication:
+  - Uses passport for Facebook and GitHub login strategies.
+  - Implements session handling for login and user authentication.
+  
+##### Database:
+  - Connects to MongoDB using the MongoDB Node.js driver.
+  - Database and collection names are concert and concertinfo.
+  
+##### User Features:
+  - User registration and login (with password hashing using bcrypt).
+  - Manage favorites (concert bookmarking feature).
+  - Password reset functionality.
+  
+##### File Handling:
+  - Manages file uploads using express-formidable.
+  - Images are stored as Base64-encoded strings in MongoDB.
+  
+##### Routing:
+  - Multiple routes for handling pages like login, register, profile, content, etc.
+  - CRUD operations for concerts, including APIs (/api/concerts).
+  
+##### Middleware:
+  - Includes middlewares for logging requests, managing sessions, CORS, and static files.
+  - Adds user information and authentication state to responses.
+  
+##### Templates:  
+  - Uses the ejs template engine for rendering views.
+  
+##### CRUD Functions: 
+  - Functions to create, read, update, and delete concert documents in MongoDB.
+  - Route handlers for concert details, creation, editing, and deletion.
+  
+##### Utilities:
+  - Middleware for error handling and tracing user activity.
 
-- reset-password.ejs:
-  For resetting user passwords.
+</details>
+  
+### package.json:
+  - Contains the project dependencies, scripts, and metadata.
+  
+### public:
+  - Includes static files such as CSS, images, and JavaScript assets (if applicable).
+  
+### create.ejs:
+  - For creating new concerts entries.
+  
+### details.ejs:
+  - For displaying detailed information about a specific concert.
+  
+### edit.ejs:
+  - For editing existing concert data.
+  
+### home.ejs:
+  - For the home page of the application.
+  
+### info.ejs:
+  - For dynamically adjust its content and display relevant system messages based on the user's verification status.
+  
+### list.ejs:
+  - For presenting a concert listing. It includes search and sorting capabilities, a navigation bar, and the ability to bookmark concerts and view concert details.
+  
+### login.ejs:
+  - For the login page(login in local or facebook, github login only for localhost).
 
-- cookies.txt:
-  For saving user's login status and supporting curl command testing API.
+### profile.ejs:
+  - For displaying user profiles and display favorite concert.
 
-- FETCH_HEAD:
-  For recording the latest commit of the remote branch obtained by the latest `git fetch` operation and tracking the latest status of the remote repository.
+### register.ejs:
+  - For user registration.
+
+### reset-password.ejs:
+  - For resetting user passwords.
+
+### cookies.txt:
+  - For saving user's login status and supporting curl command testing API.
+
+### FETCH_HEAD:
+  - For recording the latest commit of the remote branch obtained by the latest `git fetch` operation and tracking the latest status of the remote repository.
   
 ## Project features instruction:
 

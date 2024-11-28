@@ -59,9 +59,9 @@ A web application for querying concert information with user authentication. Onl
 - home.ejs:
   For the home page of the application.
 - info.ejs:
-  
+  For dynamically adjust its content and display relevant system messages based on the user's verification status.
 - list.ejs:
-  
+  For presenting a concert listing. It includes search and sorting capabilities, a navigation bar, and the ability to bookmark concerts and view concert details.
 - login.ejs:
   For the login page(login in local or facebook, github login only for localhost).
 - profile.ejs:

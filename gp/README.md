@@ -5,7 +5,7 @@ A web application for query concert information with authentication. (modify fun
   - Name: Tong Tsz Ho, SID:12591345
   - Name: Ma Kam Chiu, SID:13687015
   - Name: Lee Chak Fung Bond, SID:13173016
-  - Name:
+  - Name: Liu Yan Zuo , SID: 12727610
 ## Project Structure:
 
 ## Project file instruction:

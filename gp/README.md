@@ -85,8 +85,7 @@ A web application for querying concert information with user authentication. Onl
   For saving user's login status and supporting curl command testing API.
 
 - FETCH_HEAD:
-  For recording the latest commit of the remote branch obtained by the latest `git fetch` operation and tracking the latest status of the remote repository
-
+  For recording the latest commit of the remote branch obtained by the latest `git fetch` operation and tracking the latest status of the remote repository.
   
 ## Project features instruction:
 

@@ -51,7 +51,12 @@ A web application for querying concert information with user authentication. Onl
 ### user flow
 -  Login: Authenticate using valid credentials.Can Login by Username, Password / Facebook / github(local)
 
-![圖片](https://github.com/user-attachments/assets/e7c6f38b-b889-4199-97fd-531aaf8f4585)
+![image](https://github.com/user-attachments/assets/62b162d1-4f57-4024-a4c6-e9263b346927)
+![image](https://github.com/user-attachments/assets/ec4b0dd6-e88c-4a64-b93f-d20fa313bb22)
+
+![image](https://github.com/user-attachments/assets/39f32170-9826-464f-97fc-a22556e8c766)
+![image](https://github.com/user-attachments/assets/2fa90dd0-8f4c-4483-a8e2-204b6c7164e7)
+![image](https://github.com/user-attachments/assets/7cb2b06b-9661-4743-8234-0d4a8b952ee6)
 
 -  Add New Concert: Create a new concert record via the "新增演唱會" button.
 

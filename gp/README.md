@@ -24,16 +24,16 @@ A web application for querying concert information with user authentication. Onl
 ├── test_images/
 │   └── test_concert.jpg
 ├── views/
-│   ├── create.ejs                  # Template for creating new data
-│   ├── details.ejs                 # Template for displaying detailed information
-│   ├── edit.ejs                    # Template for editing existing data
-│   ├── home.ejs                    # Template for the home page
-│   ├── info.ejs                    # Template for displaying informational messages
-│   ├── list.ejs                    # Template for listing data items
-│   ├── login.ejs                   # Template for the login page
-│   ├── profile.ejs                 # Template for displaying user profiles
-│   ├── register.ejs                # Template for user registration
-│   └── reset-password.ejs          # Template for resetting passwords
+│   ├── create.ejs                  
+│   ├── details.ejs                 
+│   ├── edit.ejs                  
+│   ├── home.ejs                
+│   ├── info.ejs               
+│   ├── list.ejs                
+│   ├── login.ejs                 
+│   ├── profile.ejs               
+│   ├── register.ejs               
+│   └── reset-password.ejs         
 ├── -F
 ├── -b
 ├── FETCH_HEAD

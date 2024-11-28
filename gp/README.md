@@ -24,7 +24,11 @@ A web application for querying concert information with user authentication. Onl
 ## Operation guides
 ### user flow
 -  Login: Authenticate using valid credentials.
--  Add New Concert: Create a new concert record via the "Add Concert" button.
+
+![圖片](https://github.com/user-attachments/assets/e7c6f38b-b889-4199-97fd-531aaf8f4585)
+
+-  Add New Concert: Create a new concert record via the "新增演唱會" button.
+
 -  Favorite: Mark a concert as a favorite.
 -  Check Details: View concert details by clicking on the concert entry.
 -  Edit Concert: Modify existing concert information.

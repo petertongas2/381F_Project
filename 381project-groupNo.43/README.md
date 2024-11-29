@@ -37,7 +37,6 @@ A web application for querying concert information with user authentication. Onl
 ├── FETCH_HEAD
 ├── README.md
 ├── cookies.txt
-├── package-lock.json
 ├── package.json
 └── server.js
 ```

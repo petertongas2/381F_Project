@@ -230,21 +230,42 @@ APIs, HTTP request types and Path URI.
 
 ## RESTful API Testing with CURL
 Ensure you are logged in before testing these APIs.
-### Login
+
+### Cloud
+#### Login
+```curl -X POST https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/login/local -c cookies.txt -F "username=ooo" -F "password=222222"```
+
+![image](https://github.com/user-attachments/assets/f9b5523c-89ce-48f4-bace-b6e56e00dbff)
+
+#### Add (Create)
+```curl -X POST https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/create -b cookies.txt -H "Content-Type: multipart/form-data" -F "title=Test Concert" -F "date=2024-04-01" -F "time=19:00" -F "location=Test Venue" -F "description=Test Description" -F "content=Test Content" -F "artist=Test Artist" -F "ticketFee=1000"```
+
+![image](https://github.com/user-attachments/assets/e13ec478-6fc7-468b-89f9-cc0380957d31)
+
+#### Get (Read)
+```curl -X GET "https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/details?_id=6749956568d0453c7ceeb05a" -b cookies.txt -H "Accept: application/json"```
+
+![image](https://github.com/user-attachments/assets/d30fe4fb-a75a-4943-8a02-1ec725b6097f)
+![image](https://github.com/user-attachments/assets/19ee8063-e760-4499-a8d1-b1f03ef6d622)
+
+#### Update (Edit)
+```curl -X POST "https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/update?_id=6749956568d0453c7ceeb05a" -b cookies.txt -F "title=Updated Concert" -F "description=Updated description"```
+
+![image](https://github.com/user-attachments/assets/8e8bd10b-f3ca-4ff6-bc42-74282e0dcdfa)
+
+#### Delete
+```curl -X DELETE "https://381fproject-gp43-app-amgvb2a8dthfg9a8.eastus-01.azurewebsites.net/concerts/6749956568d0453c7ceeb05a" -b cookies.txt -H "Content-Type: application/json"```
+
+![image](https://github.com/user-attachments/assets/dd4e31c5-97dd-4619-b31e-946d26173578)
+
+### Local
+#### Login
 
 ```curl -X POST http://localhost:8099/login/local -c cookies.txt -F "username=ooo" -F "password=222222"```
 
 ![螢幕快照 2024-11-28 00-35-17](https://github.com/user-attachments/assets/7d6bb8cc-1707-4bfc-bcae-1b0c386c7bbf)
 
-### Get (Read)
-
-- Fetch concert details by ID:
-
-```curl -X GET http://localhost:8099/api/concerts/6741f3b1c8b902551e7d23ce```
-
-![螢幕快照 2024-11-28 00-43-03](https://github.com/user-attachments/assets/cb308619-6287-4f82-be2e-d60c478f6f8a)
-
-### Add (Create)
+#### Add (Create)
 
 - Create a new concert:
   
@@ -265,7 +286,15 @@ Ensure you are logged in before testing these APIs.
 
 ![螢幕快照 2024-11-28 00-36-45](https://github.com/user-attachments/assets/f8dfd00f-7b96-4854-8e48-4dbe40b280a6)
 
-### Update (Edit)
+#### Get (Read)
+
+- Fetch concert details by ID:
+
+```curl -X GET http://localhost:8099/api/concerts/6741f3b1c8b902551e7d23ce```
+
+![螢幕快照 2024-11-28 00-43-03](https://github.com/user-attachments/assets/cb308619-6287-4f82-be2e-d60c478f6f8a)
+
+#### Update (Edit)
 
 - Update concert information:
 
@@ -279,7 +308,7 @@ Ensure you are logged in before testing these APIs.
 
 ![螢幕快照 2024-11-28 00-39-59](https://github.com/user-attachments/assets/2db29451-cdfb-4be6-aac2-e4a9e7658578)
 
-### Delete
+#### Delete
 
 - Delete a concert by ID:
 
